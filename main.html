@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>OpenID Federation Key Attestation Endpoint 1.0 - draft 01</title>
+<meta content="Harry Kodden" name="author">
+<meta content="
+       This specification acts as an extension to  . It defines
+an additional federation endpoint that allows a Subordinate Entity to request
+that its Immediate Superior update the attested Federation Entity Keys in the
+Subordinate Statement. The request is authenticated by a signature made with a
+key the Superior already attests, and the candidate keys MUST already appear in
+the Subordinate's Entity Configuration. 
+    " name="description">
+<meta content="xml2rfc 3.16.0" name="generator">
+<meta content="security" name="keyword">
+<meta content="openid" name="keyword">
+<meta content="federation" name="keyword">
+<meta content="key-rollover" name="keyword">
+<meta content="openid-federation-key-attestation" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.16.0
+    Python 3.10.2
+    appdirs 1.4.4
+    ConfigArgParse 1.5.3
+    google-i18n-address 2.5.2
+    html5lib 1.1
+    intervaltree 3.1.0
+    Jinja2 3.1.2
+    lxml 4.9.2
+    MarkupSafe 2.1.2
+    pycountry 22.3.5
+    PyYAML 6.0
+    requests 2.28.2
+    setuptools 57.5.0
+    six 1.16.0
+    wcwidth 0.2.6
+-->
+<link href="./openid-federation-key-attestation.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">/*
+
+  NOTE: Changes at the bottom of this file overrides some earlier settings.
+
+  Once the style has stabilized and has been adopted as an official RFC style,
+  this can be consolidated so that style settings occur only in one place, but
+  for now the contents of this file consists first of the initial CSS work as
+  provided to the RFC Formatter (xml2rfc) work, followed by itemized and
+  commented changes found necessary during the development of the v3
+  formatters.
+
+*/
+
+/* fonts */
+@import url('https://fonts.googleapis.com/css?family=Noto+Sans'); /* Sans-serif */
+@import url('https://fonts.googleapis.com/css?family=Noto+Serif'); /* Serif (print) */
+@import url('https://fonts.googleapis.com/css?family=Roboto+Mono'); /* Monospace */
+
+:root {
+  --font-sans: 'Noto Sans', Arial, Helvetica, sans-serif;
+  --font-serif: 'Noto Serif', 'Times', 'Times New Roman', serif;
+  --font-mono: 'Roboto Mono', Courier, 'Courier New', monospace;
+}
+
+@viewport {
+  zoom: 1.0;
+  width: extend-to-zoom;
+}
+@-ms-viewport {
+  width: extend-to-zoom;
+  zoom: 1.0;
+}
+/* general and mobile first */
+html {
+}
+body {
+  max-width: 90%;
+  margin: 1.5em auto;
+  color: #222;
+  background-color: #fff;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+.ears {
+  display: none;
+}
+
+/* headings */
+#title, h1, h2, h3, h4, h5, h6 {
+  margin: 1em 0 0.5em;
+  font-weight: bold;
+  line-height: 1.3;
+}
+#title {
+  clear: both;
+  border-bottom: 1px solid #ddd;
+  margin: 0 0 0.5em 0;
+  padding: 1em 0 0.5em;
+}
+.author {
+  padding-bottom: 4px;
+}
+h1 {
+  font-size: 26px;
+  margin: 1em 0;
+}
+h2 {
+  font-size: 22px;
+  margin-top: -20px;  /* provide offset for in-page anchors */
+  padding-top: 33px;
+}
+h3 {
+  font-size: 18px;
+  margin-top: -36px;  /* provide offset for in-page anchors */
+  padding-top: 42px;
+}
+h4 {
+  font-size: 16px;
+  margin-top: -36px;  /* provide offset for in-page anchors */
+  padding-top: 42px;
+}
+h5, h6 {
+  font-size: 14px;
+}
+#n-copyright-notice {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1em;
+  margin-bottom: 1em;
+}
+/* general structure */
+p {
+  padding: 0;
+  margin: 0 0 1em 0;
+  text-align: left;
+}
+div, span {
+  position: relative;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  padding: 1em 1em 0;
+  margin-bottom: 1.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+svg[font-family~="serif" i], svg [font-family~="serif" i] {
+  font-family: var(--font-serif);
+}
+svg[font-family~="sans-serif" i], svg [font-family~="sans-serif" i] {
+  font-family: var(--font-sans);
+}
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  padding: 1em 1em 0;
+  margin-bottom: 1.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  display: table;
+  border: none;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 1em 2em;
+}
+ol ol, ul ul, ol ul, ul ol {
+  margin-left: 1em;
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+.ulCompact li {
+  margin: 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+}
+ul.empty li, .ulEmpty li {
+  margin-top: 0.5em;
+}
+ul.ulBare, li.ulBare {
+  margin-left: 0em !important;
+}
+ul.compact, .ulCompact,
+ol.compact, .olCompact {
+  line-height: 100%;
+  margin: 0 0 0 2em;
+}
+
+/* definition lists */
+dl {
+}
+dl > dt {
+  float: left;
+  margin-right: 1em;
+}
+/* 
+dl.nohang > dt {
+  float: none;
+}
+*/
+dl > dd {
+  margin-bottom: .8em;
+  min-height: 1.3em;
+}
+dl.compact > dd, .dlCompact > dd {
+  margin-bottom: 0em;
+}
+dl > dd > dl {
+  margin-top: 0.5em;
+  margin-bottom: 0em;
+}
+
+/* links */
+a {
+  text-decoration: none;
+}
+a[href] {
+  color: #22e; /* Arlen: WCAG 2019 */
+}
+a[href]:hover {
+  background-color: #f2f2f2;
+}
+figcaption a[href],
+a[href].selfRef {
+  color: #222;
+}
+/* XXX probably not this:
+a.selfRef:hover {
+  background-color: transparent;
+  cursor: default;
+} */
+
+/* Figures */
+tt, code, pre {
+  background-color: #f9f9f9;
+  font-family: var(--font-mono);
+}
+pre {
+  border: 1px solid #eee;
+  margin: 0;
+  padding: 1em;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption {
+  font-style: italic;
+  margin: 0 0 1em 0;
+}
+@media screen {
+  pre {
+    overflow-x: auto;
+    max-width: 100%;
+    max-width: calc(100% - 22px);
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 1.2em 2em;
+}
+blockquote {
+  background-color: #f9f9f9;
+  color: #111; /* Arlen: WCAG 2019 */
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  margin: 1em 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  border: 1px solid #eee;
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5em 0.75em;
+}
+th {
+  text-align: left;
+  background-color: #e9e9e9;
+}
+tr:nth-child(2n+1) > td {
+  background-color: #f5f5f5;
+}
+table caption {
+  font-style: italic;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+table p {
+  /* XXX to avoid bottom margin on table row signifiers. If paragraphs should
+     be allowed within tables more generally, it would be far better to select on a class. */
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  color: #666; /* Arlen: AHDJ 2019 */
+  text-decoration: none;
+  visibility: hidden;
+  user-select: none;
+  -ms-user-select: none;
+  -o-user-select:none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+@media screen {
+  aside:hover > a.pilcrow,
+  p:hover > a.pilcrow,
+  blockquote:hover > a.pilcrow,
+  div:hover > a.pilcrow,
+  li:hover > a.pilcrow,
+  pre:hover > a.pilcrow {
+    visibility: visible;
+  }
+  a.pilcrow:hover {
+    background-color: transparent;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid #eee;
+}
+.bcp14 {
+  font-variant: small-caps;
+}
+
+.role {
+  font-variant: all-small-caps;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: 0.9em;
+}
+#identifiers dt {
+  width: 3em;
+  clear: left;
+}
+#identifiers dd {
+  float: left;
+  margin-bottom: 0;
+}
+/* Fix PDF info block run off issue */
+@media print {
+  #identifiers dd {
+    float: none;
+  }
+}
+#identifiers .authors .author {
+  display: inline-block;
+  margin-right: 1.5em;
+}
+#identifiers .authors .org {
+  font-style: italic;
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #666; /* Arlen: WCAG 2019 */
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: left;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc  {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+}
+nav.toc ul {
+  margin: 0 0.5em 0 0;
+  padding: 0;
+  list-style: none;
+}
+nav.toc li {
+  line-height: 1.3em;
+  margin: 0.75em 0;
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+}
+/* references */
+.references dt {
+  text-align: right;
+  font-weight: bold;
+  min-width: 7em;
+}
+.references dd {
+  margin-left: 8em;
+  overflow: auto;
+}
+
+.refInstance {
+  margin-bottom: 1.25em;
+}
+
+.references .ascii {
+  margin-bottom: 0.25em;
+}
+
+/* index */
+.index ul {
+  margin: 0 0 0 1em;
+  padding: 0;
+  list-style: none;
+}
+.index ul ul {
+  margin: 0;
+}
+.index li {
+  margin: 0;
+  text-indent: -2em;
+  padding-left: 2em;
+  padding-bottom: 5px;
+}
+.indexIndex {
+  margin: 0.5em 0 1em;
+}
+.index a {
+  font-weight: 700;
+}
+/* make the index two-column on all but the smallest screens */
+@media (min-width: 600px) {
+  .index ul {
+    -moz-column-count: 2;
+    -moz-column-gap: 20px;
+  }
+  .index ul ul {
+    -moz-column-count: 1;
+    -moz-column-gap: 0;
+  }
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  margin: 1em 0;
+}
+
+address.vcard .nameRole {
+  font-weight: 700;
+  margin-left: 0;
+}
+address.vcard .label {
+  font-family: var(--font-sans);
+  margin: 0.5em 0;
+}
+address.vcard .type {
+  display: none;
+}
+.alternative-contact {
+  margin: 1.5em 0 1em;
+}
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+
+/* temporary notes */
+.rfcEditorRemove::before {
+  position: absolute;
+  top: 0.2em;
+  right: 0.2em;
+  padding: 0.2em;
+  content: "The RFC Editor will remove this note";
+  color: #9e2a00; /* Arlen: WCAG 2019 */
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+}
+.rfcEditorRemove {
+  position: relative;
+  padding-top: 1.8em;
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+  border-radius: 3px;
+}
+.cref {
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+/* alternative layout for smaller screens */
+@media screen and (max-width: 1023px) {
+  body {
+    padding-top: 2em;
+  }
+  #title {
+    padding: 1em 0;
+  }
+  h1 {
+    font-size: 24px;
+  }
+  h2 {
+    font-size: 20px;
+    margin-top: -18px;  /* provide offset for in-page anchors */
+    padding-top: 38px;
+  }
+  #identifiers dd {
+    max-width: 60%;
+  }
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    background-color: inherit;
+    border-bottom: 1px solid #ccc;
+  }
+  #toc h2 {
+    margin: -1px 0 0 0;
+    padding: 4px 0 4px 6px;
+    padding-right: 1em;
+    min-width: 190px;
+    font-size: 1.1em;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+  }
+  #toc h2::before { /* css hamburger */
+    float: right;
+    position: relative;
+    width: 1em;
+    height: 1px;
+    left: -164px;
+    margin: 6px 0 0 0;
+    background: white none repeat scroll 0 0;
+    box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+    content: "";
+  }
+  #toc nav {
+    display: none;
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+}
+
+/* alternative layout for wide screens */
+@media screen and (min-width: 1024px) {
+  body {
+    max-width: 724px;
+    margin: 42px auto;
+    padding-left: 1.5em;
+    padding-right: 29em;
+  }
+  #toc {
+    position: fixed;
+    top: 42px;
+    right: 42px;
+    width: 25%;
+    margin: 0;
+    padding: 0 1em;
+    z-index: 1;
+  }
+  #toc h2 {
+    border-top: none;
+    border-bottom: 1px solid #ddd;
+    font-size: 1em;
+    font-weight: normal;
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 0;
+    overflow: auto;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre {
+    page-break-inside: avoid;
+  }
+  figure {
+    overflow: scroll;
+  }
+  .breakable pre {
+    break-inside: auto;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  h2+*, h3+*, h4+*, h5+*, h6+* {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+/* This is commented out here, as the string-set: doesn't
+   pass W3C validation currently */
+/*
+.ears thead .left {
+  string-set: ears-top-left content();
+}
+
+.ears thead .center {
+  string-set: ears-top-center content();
+}
+
+.ears thead .right {
+  string-set: ears-top-right content();
+}
+
+.ears tfoot .left {
+  string-set: ears-bottom-left content();
+}
+
+.ears tfoot .center {
+  string-set: ears-bottom-center content();
+}
+
+.ears tfoot .right {
+  string-set: ears-bottom-right content();
+}
+*/
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+  /* The following is commented out here, but set appropriately by in code, as
+     the content depends on the document */
+  /*
+  @top-left {
+    content: 'Internet-Draft';
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-left {
+    content: string(ears-top-left);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-center {
+    content: string(ears-top-center);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-right {
+    content: string(ears-top-right);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @bottom-left {
+    content: string(ears-bottom-left);
+    vertical-align: top;
+    border-top: solid 1px #ccc;
+  }
+  @bottom-center {
+    content: string(ears-bottom-center);
+    vertical-align: top;
+    border-top: solid 1px #ccc;
+  }
+  @bottom-right {
+      content: '[Page ' counter(page) ']';
+      vertical-align: top;
+      border-top: solid 1px #ccc;
+  }
+  */
+
+}
+
+/* Changes introduced to fix issues found during implementation */
+/* Make sure links are clickable even if overlapped by following H* */
+a {
+  z-index: 2;
+}
+/* Separate body from document info even without intervening H1 */
+section {
+  clear: both;
+}
+
+
+/* Top align author divs, to avoid names without organization dropping level with org names */
+.author {
+  vertical-align: top;
+}
+
+/* Leave room in document info to show Internet-Draft on one line */
+#identifiers dt {
+  width: 8em;
+}
+
+/* Don't waste quite as much whitespace between label and value in doc info */
+#identifiers dd {
+  margin-left: 1em;
+}
+
+/* Give floating toc a background color (needed when it's a div inside section */
+#toc {
+  background-color: white;
+}
+
+/* Make the collapsed ToC header render white on gray also when it's a link */
+@media screen and (max-width: 1023px) {
+  #toc h2 a,
+  #toc h2 a:link,
+  #toc h2 a:focus,
+  #toc h2 a:hover,
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+}
+
+/* Give the bottom of the ToC some whitespace */
+@media screen and (min-width: 1024px) {
+  #toc {
+    padding: 0 0 1em 1em;
+  }
+}
+
+/* Style section numbers with more space between number and title */
+.section-number {
+  padding-right: 0.5em;
+}
+
+/* prevent monospace from becoming overly large */
+tt, code, pre {
+  font-size: 95%;
+}
+
+/* Fix the height/width aspect for ascii art*/
+.sourcecode pre,
+.art-text pre {
+  line-height: 1.12;
+}
+
+
+/* Add styling for a link in the ToC that points to the top of the document */
+a.toplink {
+  float: right;
+  margin-right: 0.5em;
+}
+
+/* Fix the dl styling to match the RFC 7992 attributes */
+dl > dt,
+dl.dlParallel > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl.dlNewline > dt {
+  float: none;
+}
+
+/* Provide styling for table cell text alignment */
+table td.text-left,
+table th.text-left {
+  text-align: left;
+}
+table td.text-center,
+table th.text-center {
+  text-align: center;
+}
+table td.text-right,
+table th.text-right {
+  text-align: right;
+}
+
+/* Make the alternative author contact information look less like just another
+   author, and group it closer with the primary author contact information */
+.alternative-contact {
+  margin: 0.5em 0 0.25em 0;
+}
+address .non-ascii {
+  margin: 0 0 0 2em;
+}
+
+/* With it being possible to set tables with alignment
+  left, center, and right, { width: 100%; } does not make sense */
+table {
+  width: auto;
+}
+
+/* Avoid reference text that sits in a block with very wide left margin,
+   because of a long floating dt label.*/
+.references dd {
+  overflow: visible;
+}
+
+/* Control caption placement */
+caption {
+  caption-side: bottom;
+}
+
+/* Limit the width of the author address vcard, so names in right-to-left
+   script don't end up on the other side of the page. */
+
+address.vcard {
+  max-width: 30em;
+  margin-right: auto;
+}
+
+/* For address alignment dependent on LTR or RTL scripts */
+address div.left {
+  text-align: left;
+}
+address div.right {
+  text-align: right;
+}
+
+/* Provide table alignment support.  We can't use the alignX classes above
+   since they do unwanted things with caption and other styling. */
+table.right {
+ margin-left: auto;
+ margin-right: 0;
+}
+table.center {
+ margin-left: auto;
+ margin-right: auto;
+}
+table.left {
+ margin-left: 0;
+ margin-right: auto;
+}
+
+/* Give the table caption label the same styling as the figcaption */
+caption a[href] {
+  color: #222;
+}
+
+@media print {
+  .toplink {
+    display: none;
+  }
+
+  /* avoid overwriting the top border line with the ToC header */
+  #toc {
+    padding-top: 1px;
+  }
+
+  /* Avoid page breaks inside dl and author address entries */
+  .vcard {
+    page-break-inside: avoid;
+  }
+
+}
+/* Tweak the bcp14 keyword presentation */
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+/* Tweak the invisible space above H* in order not to overlay links in text above */
+ h2 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 31px;
+ }
+ h3 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 24px;
+ }
+ h4 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 24px;
+ }
+/* Float artwork pilcrow to the right */
+@media screen {
+  .artwork a.pilcrow {
+    display: block;
+    line-height: 0.7;
+    margin-top: 0.15em;
+  }
+}
+/* Make pilcrows on dd visible */
+@media screen {
+  dd:hover > a.pilcrow {
+    visibility: visible;
+  }
+}
+/* Make the placement of figcaption match that of a table's caption
+   by removing the figure's added bottom margin */
+.alignLeft.art-text,
+.alignCenter.art-text,
+.alignRight.art-text {
+   margin-bottom: 0;
+}
+.alignLeft,
+.alignCenter,
+.alignRight {
+  margin: 1em 0 0 0;
+}
+/* In print, the pilcrow won't show on hover, so prevent it from taking up space,
+   possibly even requiring a new line */
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+/* Styling for the external metadata */
+div#external-metadata {
+  background-color: #eee;
+  padding: 0.5em;
+  margin-bottom: 0.5em;
+  display: none;
+}
+div#internal-metadata {
+  padding: 0.5em;                       /* to match the external-metadata padding */
+}
+/* Styling for title RFC Number */
+h1#rfcnum {
+  clear: both;
+  margin: 0 0 -1em;
+  padding: 1em 0 0 0;
+}
+/* Make .olPercent look the same as <ol><li> */
+dl.olPercent > dd {
+  margin-bottom: 0.25em;
+  min-height: initial;
+}
+/* Give aside some styling to set it apart */
+aside {
+  border-left: 1px solid #ddd;
+  margin: 1em 0 1em 2em;
+  padding: 0.2em 2em;
+}
+aside > dl,
+aside > ol,
+aside > ul,
+aside > table,
+aside > p {
+  margin-bottom: 0.5em;
+}
+/* Additional page break settings */
+@media print {
+  figcaption, table caption {
+    page-break-before: avoid;
+  }
+}
+/* Font size adjustments for print */
+@media print {
+  body  { font-size: 10pt;      line-height: normal; max-width: 96%; }
+  h1    { font-size: 1.72em;    padding-top: 1.5em; } /* 1*1.2*1.2*1.2 */
+  h2    { font-size: 1.44em;    padding-top: 1.5em; } /* 1*1.2*1.2 */
+  h3    { font-size: 1.2em;     padding-top: 1.5em; } /* 1*1.2 */
+  h4    { font-size: 1em;       padding-top: 1.5em; }
+  h5, h6 { font-size: 1em;      margin: initial; padding: 0.5em 0 0.3em; }
+}
+/* Sourcecode margin in print, when there's no pilcrow */
+@media print {
+  .artwork,
+  .artwork > pre,
+  .sourcecode {
+    margin-bottom: 1em;
+  }
+}
+/* Avoid narrow tables forcing too narrow table captions, which may render badly */
+table {
+  min-width: 20em;
+}
+/* ol type a */
+ol.type-a { list-style-type: lower-alpha; }
+ol.type-A { list-style-type: upper-alpha; }
+ol.type-i { list-style-type: lower-roman; }
+ol.type-I { list-style-type: lower-roman; }
+/* Apply the print table and row borders in general, on request from the RPC,
+and increase the contrast between border and odd row background slightly */
+table {
+  border: 1px solid #ddd;
+}
+td {
+  border-top: 1px solid #ddd;
+}
+tr {
+  break-inside: avoid;
+}
+tr:nth-child(2n+1) > td {
+  background-color: #f8f8f8;
+}
+/* Use style rules to govern display of the TOC. */
+@media screen and (max-width: 1023px) {
+  #toc nav { display: none; }
+  #toc.active nav { display: block; }
+}
+/* Add support for keepWithNext */
+.keepWithNext {
+  break-after: avoid-page;
+  break-after: avoid-page;
+}
+/* Add support for keepWithPrevious */
+.keepWithPrevious {
+  break-before: avoid-page;
+}
+/* Change the approach to avoiding breaks inside artwork etc. */
+figure, pre, table, .artwork, .sourcecode  {
+  break-before: auto;
+  break-after: auto;
+}
+/* Avoid breaks between <dt> and <dd> */
+dl {
+  break-before: auto;
+  break-inside: auto;
+}
+dt {
+  break-before: auto;
+  break-after: avoid-page;
+}
+dd {
+  break-before: avoid-page;
+  break-after: auto;
+  orphans: 3;
+  widows: 3
+}
+span.break, dd.break {
+  margin-bottom: 0;
+  min-height: 0;
+  break-before: auto;
+  break-inside: auto;
+  break-after: auto;
+}
+/* Undo break-before ToC */
+@media print {
+  #toc {
+    break-before: auto;
+  }
+}
+/* Text in compact lists should not get extra bottom margin space,
+   since that would makes the list not compact */
+ul.compact p, .ulCompact p,
+ol.compact p, .olCompact p {
+ margin: 0;
+}
+/* But the list as a whole needs the extra space at the end */
+section ul.compact,
+section .ulCompact,
+section ol.compact,
+section .olCompact {
+  margin-bottom: 1em;                    /* same as p not within ul.compact etc. */
+}
+/* The tt and code background above interferes with for instance table cell
+   backgrounds.  Changed to something a bit more selective. */
+tt, code {
+  background-color: transparent;
+}
+p tt, p code, li tt, li code {
+  background-color: #f8f8f8;
+}
+/* Tweak the pre margin -- 0px doesn't come out well */
+pre {
+   margin-top: 0.5px;
+}
+/* Tweak the compact list text */
+ul.compact, .ulCompact,
+ol.compact, .olCompact,
+dl.compact, .dlCompact {
+  line-height: normal;
+}
+/* Don't add top margin for nested lists */
+li > ul, li > ol, li > dl,
+dd > ul, dd > ol, dd > dl,
+dl > dd > dl {
+  margin-top: initial;
+}
+/* Elements that should not be rendered on the same line as a <dt> */
+/* This should match the element list in writer.text.TextWriter.render_dl() */
+dd > div.artwork:first-child,
+dd > aside:first-child,
+dd > figure:first-child,
+dd > ol:first-child,
+dd > div.sourcecode:first-child,
+dd > table:first-child,
+dd > ul:first-child {
+  clear: left;
+}
+/* fix for weird browser behaviour when <dd/> is empty */
+dt+dd:empty::before{
+  content: "\00a0";
+}
+/* Make paragraph spacing inside <li> smaller than in body text, to fit better within the list */
+li > p {
+  margin-bottom: 0.5em
+}
+/* Don't let p margin spill out from inside list items */
+li > p:last-of-type:only-child {
+  margin-bottom: 0;
+}
+</style>
+<link href="rfc-local.css" rel="stylesheet" type="text/css">
+</head>
+<body class="xml2rfc">
+<script src="metadata.min.js"></script>
+<table class="ears">
+<thead><tr>
+<td class="left"></td>
+<td class="center">openid-federation-key-attestation</td>
+<td class="right">October 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Kodden</td>
+<td class="center">Standards Track</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">OpenID Connect Working Group</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-10-22" class="published">22 October 2026</time>
+    </dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">H. Kodden</div>
+<div class="org">SURF</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">OpenID Federation Key Attestation Endpoint 1.0 - draft 01</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This specification acts as an extension to <span>[<a href="#OpenID.Federation" class="cite xref">OpenID.Federation</a>]</span>. It defines
+an additional federation endpoint that allows a Subordinate Entity to request
+that its Immediate Superior update the attested Federation Entity Keys in the
+Subordinate Statement. The request is authenticated by a signature made with a
+key the Superior already attests, and the candidate keys MUST already appear in
+the Subordinate's Entity Configuration.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-rationale-and-benefits" class="internal xref">Rationale and Benefits</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.2">
+                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-requirements-notation-and-c" class="internal xref">Requirements Notation and Conventions</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-relationship-to-openid-fede" class="internal xref">Relationship to OpenID Federation Key Rollover</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-key-attestation-endpoint" class="internal xref">Key Attestation Endpoint</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-endpoint-location" class="internal xref">Endpoint Location</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-key-attestation-request" class="internal xref">Key Attestation Request</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
+                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-request-format" class="internal xref">Request Format</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.2">
+                    <p id="section-toc.1-1.4.2.2.2.2.1"><a href="#section-4.2.2" class="auto internal xref">4.2.2</a>.  <a href="#name-jwt-header" class="internal xref">JWT Header</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.3">
+                    <p id="section-toc.1-1.4.2.2.2.3.1"><a href="#section-4.2.3" class="auto internal xref">4.2.3</a>.  <a href="#name-jwt-claims" class="internal xref">JWT Claims</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.4">
+                    <p id="section-toc.1-1.4.2.2.2.4.1"><a href="#section-4.2.4" class="auto internal xref">4.2.4</a>.  <a href="#name-superior-processing-rules" class="internal xref">Superior Processing Rules</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-key-attestation-response" class="internal xref">Key Attestation Response</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.1">
+                    <p id="section-toc.1-1.4.2.3.2.1.1"><a href="#section-4.3.1" class="auto internal xref">4.3.1</a>.  <a href="#name-success-response" class="internal xref">Success Response</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.2">
+                    <p id="section-toc.1-1.4.2.3.2.2.1"><a href="#section-4.3.2" class="auto internal xref">4.3.2</a>.  <a href="#name-error-response" class="internal xref">Error Response</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-examples" class="internal xref">Examples</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-example-http-request" class="internal xref">Example HTTP Request</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-example-success-response-he" class="internal xref">Example Success Response Header</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-implementation-consideratio" class="internal xref">Implementation Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-overlap-period" class="internal xref">Overlap Period</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-policy-and-automatic-approv" class="internal xref">Policy and Automatic Approval</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-interaction-with-enrollment" class="internal xref">Interaction with Enrollment</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-signer-must-be-attested" class="internal xref">Signer Must Be Attested</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-candidate-keys-must-be-publ" class="internal xref">Candidate Keys Must Be Published and Matched</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-proof-of-possession" class="internal xref">Proof of Possession</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
+                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-replay" class="internal xref">Replay</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.5">
+                <p id="section-toc.1-1.7.2.5.1"><a href="#section-7.5" class="auto internal xref">7.5</a>.  <a href="#name-authorization-boundary" class="internal xref">Authorization Boundary</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-notices" class="internal xref">Notices</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-acknowledgements" class="internal xref">Acknowledgements</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-C" class="auto internal xref">Appendix C</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-D" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">OpenID Federation defines how Federation Entity Keys are published in an Entity
+Configuration and how an Immediate Superior attests a Subordinate's keys in a
+Subordinate Statement. Trust Chains verify signatures using keys from the next
+Entity Statement in the chain. For a Subordinate that is not a Trust Anchor,
+consumers rely on the <code>jwks</code> Claim of the Subordinate Statement issued by the
+Superior, not solely on the Subordinate's own Entity Configuration.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2"><span>[<a href="#OpenID.Federation" class="cite xref">OpenID.Federation</a>]</span> Section 11 describes Federation Key Rollover for Entity
+Configurations and for Trust Anchors. It does not define a standard protocol by
+which a Subordinate asks its Immediate Superior to update the attested key set
+in the Subordinate Statement. Implementations today depend on out-of-band
+operations, proprietary enrollment flows, or opportunistic refresh at statement
+expiry. Those mechanisms do not guarantee that newly published keys are copied
+into the attested Subordinate Statement.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">This specification defines the Federation Key Attestation Endpoint. A
+Subordinate posts a signed Key Attestation Request JWT to its Immediate
+Superior. The request is signed with a key already attested by that Superior.
+The Superior verifies that each candidate key is present in the Subordinate's
+Entity Configuration, then issues an updated Subordinate Statement and makes it
+available from its <code>federation_fetch_endpoint</code>.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<div id="rationale-and-benefits">
+<section id="section-1.1">
+        <h3 id="name-rationale-and-benefits">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-rationale-and-benefits" class="section-name selfRef">Rationale and Benefits</a>
+        </h3>
+<p id="section-1.1-1">The following properties motivate this extension:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-1.1-2.1">Closes the attestation gap: Publishing a key in an Entity Configuration does
+not by itself make that key usable in a Trust Chain that depends on a
+Superior-issued Subordinate Statement.<a href="#section-1.1-2.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-1.1-2.2">Continuity of control: Signing the request with an already-attested key binds
+the update to the entity the Superior already trusts.<a href="#section-1.1-2.2" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-1.1-2.3">Independent verification: Requiring candidate keys to appear in the
+Subordinate Entity Configuration lets the Superior re-fetch and verify those
+keys before attestation.<a href="#section-1.1-2.3" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-1.1-2.4">Compatible with historical keys: After the Superior attests the new key, the
+Subordinate can switch signing keys and later publish retired keys at
+<code>federation_historical_keys_endpoint</code> as defined by OpenID Federation.<a href="#section-1.1-2.4" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-1.1-2.5">Complements Subordinate Events: Where a Superior publishes Subordinate Events,
+a successful attestation update SHOULD be recorded as a <code>jwks_update</code> event.<a href="#section-1.1-2.5" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
+<div id="requirements-notation-and-conventions">
+<section id="section-1.2">
+        <h3 id="name-requirements-notation-and-c">
+<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-requirements-notation-and-c" class="section-name selfRef">Requirements Notation and Conventions</a>
+        </h3>
+<p id="section-1.2-1">The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span>
+when, and only when, they appear in all capitals, as shown here.<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="terminology">
+<section id="section-2">
+      <h2 id="name-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
+      </h2>
+<p id="section-2-1">This specification uses the terms "Entity", "Entity Configuration", "Entity
+Statement", "Federation Entity", "Federation Entity Key", "Trust Anchor",
+"Intermediate", "Immediate Superior", "Subordinate", "Subordinate Statement",
+and "Trust Chain" as defined in <span>[<a href="#OpenID.Federation" class="cite xref">OpenID.Federation</a>]</span>.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-2-2">
+        <dt id="section-2-2.1">Attested Key</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.2">A Federation Entity Key present in the <code>jwks</code> Claim of a Subordinate
+Statement issued by an Immediate Superior about a Subordinate.<a href="#section-2-2.2" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.3">Candidate Key</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.4">A Federation Entity Key that a Subordinate requests to be added to the
+attested key set. A Candidate Key MUST already appear in the Subordinate's
+Entity Configuration <code>jwks</code> Claim.<a href="#section-2-2.4" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.5">Key Attestation Request</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.6">A signed JWT posted to the Federation Key Attestation Endpoint that requests
+an update to the attested key set for the Subordinate identified by the JWT
+<code>sub</code> Claim.<a href="#section-2-2.6" class="pilcrow">¶</a>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="relationship-to-openid-federation-key-rollover">
+<section id="section-3">
+      <h2 id="name-relationship-to-openid-fede">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-relationship-to-openid-fede" class="section-name selfRef">Relationship to OpenID Federation Key Rollover</a>
+      </h2>
+<p id="section-3-1"><span>[<a href="#OpenID.Federation" class="cite xref">OpenID.Federation</a>]</span> Section 11.2 describes Trust Anchor key rollover by
+publishing new keys in the Trust Anchor Entity Configuration while continuing
+to sign with previously distributed keys. That model works for Trust Anchors
+because relying parties obtain Trust Anchor keys out of band or from the Trust
+Anchor Entity Configuration itself.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">For Intermediates and Leaf Entities, consumers verify Entity Configuration
+signatures using keys from the Immediate Superior's Subordinate Statement. A
+new key published only in the Subordinate Entity Configuration is therefore not
+sufficient for Trust Chain validation until the Superior attests it.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">The recommended rollover sequence when using this specification is:<a href="#section-3-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-3-4">
+<li id="section-3-4.1">The Subordinate adds the Candidate Key to its Entity Configuration <code>jwks</code>
+Claim.<a href="#section-3-4.1" class="pilcrow">¶</a>
+</li>
+        <li id="section-3-4.2">The Subordinate continues to sign its Entity Configuration with an Attested
+Key.<a href="#section-3-4.2" class="pilcrow">¶</a>
+</li>
+        <li id="section-3-4.3">The Subordinate calls the Superior's Federation Key Attestation Endpoint.<a href="#section-3-4.3" class="pilcrow">¶</a>
+</li>
+        <li id="section-3-4.4">The Superior issues an updated Subordinate Statement that includes the
+Candidate Key in <code>jwks</code>.<a href="#section-3-4.4" class="pilcrow">¶</a>
+</li>
+        <li id="section-3-4.5">The Subordinate begins signing with the newly attested key and MAY later
+retire previous keys via <code>federation_historical_keys_endpoint</code>.<a href="#section-3-4.5" class="pilcrow">¶</a>
+</li>
+      </ol>
+</section>
+</div>
+<div id="key-attestation-endpoint">
+<section id="section-4">
+      <h2 id="name-key-attestation-endpoint">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-key-attestation-endpoint" class="section-name selfRef">Key Attestation Endpoint</a>
+      </h2>
+<p id="section-4-1">The Federation Key Attestation Endpoint is an OPTIONAL endpoint that MAY be
+published by Trust Anchors and Intermediate Entities. Leaf Entities MUST NOT
+publish this endpoint. The endpoint URL MUST use the <code>https</code> scheme and MAY
+contain port, path, and query parameter components. It MUST NOT contain a
+fragment component.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="endpoint-location">
+<section id="section-4.1">
+        <h3 id="name-endpoint-location">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-endpoint-location" class="section-name selfRef">Endpoint Location</a>
+        </h3>
+<p id="section-4.1-1">The location of the Federation Key Attestation Endpoint is published in the
+<code>federation_entity</code> metadata using the <code>federation_key_attestation_endpoint</code>
+parameter.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">The following is a non-normative example of an Entity Configuration payload for
+a Trust Anchor that includes the endpoint. The path component <code>/key_rollover</code>
+is illustrative; any path MAY be used.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.1-3">
+<pre>{
+  "iss": "https://ta.oidf-pilot.edugain.org",
+  "sub": "https://ta.oidf-pilot.edugain.org",
+  "iat": 1792503828,
+  "exp": 1792590228,
+  "jwks": {
+    "keys": [
+      {
+        "kty": "EC",
+        "crv": "P-256",
+        "kid": "xcXdyJ2_7cOd05QIqfpdrb3j5-mYFw8dqdcqzEh0lUw",
+        "x": "hh5u_VrRXLaX...",
+        "y": "..."
+      }
+    ]
+  },
+  "metadata": {
+    "federation_entity": {
+      "federation_fetch_endpoint":
+        "https://ta.oidf-pilot.edugain.org/fetch",
+      "federation_list_endpoint":
+        "https://ta.oidf-pilot.edugain.org/list",
+      "federation_resolve_endpoint":
+        "https://ta.oidf-pilot.edugain.org/resolve",
+      "federation_key_attestation_endpoint":
+        "https://ta.oidf-pilot.edugain.org/key_rollover"
+    }
+  }
+}
+</pre><a href="#section-4.1-3" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="key-attestation-request">
+<section id="section-4.2">
+        <h3 id="name-key-attestation-request">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-key-attestation-request" class="section-name selfRef">Key Attestation Request</a>
+        </h3>
+<div id="request-format">
+<section id="section-4.2.1">
+          <h4 id="name-request-format">
+<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-request-format" class="section-name selfRef">Request Format</a>
+          </h4>
+<p id="section-4.2.1-1">The request MUST be an HTTP POST. The HTTP request body MUST be a Key
+Attestation Request JWT. The <code>Content-Type</code> of the request MUST be
+<code>application/key-attestation-request+jwt</code>.<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-2">Clients SHOULD set the <code>Accept</code> header to prefer
+<code>application/entity-statement+jwt</code> on success and <code>application/json</code> on error.<a href="#section-4.2.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="jwt-header">
+<section id="section-4.2.2">
+          <h4 id="name-jwt-header">
+<a href="#section-4.2.2" class="section-number selfRef">4.2.2. </a><a href="#name-jwt-header" class="section-name selfRef">JWT Header</a>
+          </h4>
+<p id="section-4.2.2-1">The Key Attestation Request is a JWS <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span> signed JWT. The JOSE Header
+MUST include:<a href="#section-4.2.2-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.2.2-2.1">
+              <code>alg</code>: REQUIRED. A signature algorithm suitable for Federation Entity Keys.
+<code>ES256</code> is RECOMMENDED.<a href="#section-4.2.2-2.1" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.2-2.2">
+              <code>kid</code>: REQUIRED. Key ID of the Attested Key used to sign the request. The
+value MUST identify a key in the current Subordinate Statement <code>jwks</code> for the
+subject.<a href="#section-4.2.2-2.2" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.2-2.3">
+              <code>typ</code>: REQUIRED. MUST be <code>key-attestation-request+jwt</code>.<a href="#section-4.2.2-2.3" class="pilcrow">¶</a>
+</li>
+          </ul>
+</section>
+</div>
+<div id="jwt-claims">
+<section id="section-4.2.3">
+          <h4 id="name-jwt-claims">
+<a href="#section-4.2.3" class="section-number selfRef">4.2.3. </a><a href="#name-jwt-claims" class="section-name selfRef">JWT Claims</a>
+          </h4>
+<p id="section-4.2.3-1">The Key Attestation Request JWT Claims are:<a href="#section-4.2.3-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.2.3-2.1">
+              <code>iss</code>: REQUIRED. String. Entity Identifier of the Subordinate making the
+request.<a href="#section-4.2.3-2.1" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.3-2.2">
+              <code>sub</code>: REQUIRED. String. Entity Identifier of the Subordinate whose attested
+keys are to be updated. MUST equal <code>iss</code>.<a href="#section-4.2.3-2.2" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.3-2.3">
+              <code>aud</code>: REQUIRED. String. Entity Identifier of the Immediate Superior operating
+the endpoint.<a href="#section-4.2.3-2.3" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.3-2.4">
+              <code>iat</code>: REQUIRED. Number. Time at which the request was issued, expressed as
+Seconds Since the Epoch.<a href="#section-4.2.3-2.4" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.3-2.5">
+              <code>exp</code>: REQUIRED. Number. Expiration time of the request.<a href="#section-4.2.3-2.5" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.3-2.6">
+              <code>jti</code>: REQUIRED. String. Unique identifier for the request. Superiors MUST
+reject reused <code>jti</code> values within the request lifetime.<a href="#section-4.2.3-2.6" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.3-2.7">
+              <code>add_keys</code>: OPTIONAL. Array of JWK objects <span>[<a href="#RFC7517" class="cite xref">RFC7517</a>]</span>. Candidate Keys to add
+to the attested key set. Every JWK MUST contain a <code>kid</code>. If present, the
+array MUST NOT be empty.<a href="#section-4.2.3-2.7" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.3-2.8">
+              <code>retain_keys</code>: OPTIONAL. Array of strings. Key IDs that the Subordinate asks
+the Superior to keep in the attested key set. If omitted, the Superior SHOULD
+retain all currently attested keys that are not listed in <code>remove_keys</code>.<a href="#section-4.2.3-2.8" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.3-2.9">
+              <code>remove_keys</code>: OPTIONAL. Array of strings. Key IDs that the Subordinate asks
+the Superior to remove from the attested key set.<a href="#section-4.2.3-2.9" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.2.3-2.10">
+              <code>entity_configuration_uri</code>: OPTIONAL. String. URL of the Subordinate Entity
+Configuration. If omitted, the Superior MUST derive
+<code>{sub}/.well-known/openid-federation</code>.<a href="#section-4.2.3-2.10" class="pilcrow">¶</a>
+</li>
+          </ul>
+<p id="section-4.2.3-3">At least one of <code>add_keys</code> or <code>remove_keys</code> MUST be present.<a href="#section-4.2.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.2.3-4">The following is a non-normative example of Key Attestation Request Claims:<a href="#section-4.2.3-4" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.2.3-5">
+<pre>{
+  "iss": "https://ta.poc2.dev.oidf.lab.surfconext.nl",
+  "sub": "https://ta.poc2.dev.oidf.lab.surfconext.nl",
+  "aud": "https://ta.oidf-pilot.edugain.org",
+  "iat": 1792600000,
+  "exp": 1792603600,
+  "jti": "kar-20261022-01",
+  "add_keys": [
+    {
+      "kty": "EC",
+      "crv": "P-256",
+      "use": "sig",
+      "alg": "ES256",
+      "kid": "ta-poc2-dev-oidf-lab-surfconext-nl-20260921T124313Z",
+      "x": "nXW6y02ia5cgtgiSl7ywnOGLpocH8nnj9plc3VwbKSs",
+      "y": "TxoiRaUH9MbQ8ce0y5ddMCuWwYVUMVj70T-lbGhyL8M"
+    }
+  ],
+  "retain_keys": [
+    "ta-poc2-dev-oidf-lab-surfconext-nl-20260320T162914Z"
+  ],
+  "remove_keys": [],
+  "entity_configuration_uri":
+    "https://ta.poc2.dev.oidf.lab.surfconext.nl/.well-known/openid-federation"
+}
+</pre><a href="#section-4.2.3-5" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="superior-processing-rules">
+<section id="section-4.2.4">
+          <h4 id="name-superior-processing-rules">
+<a href="#section-4.2.4" class="section-number selfRef">4.2.4. </a><a href="#name-superior-processing-rules" class="section-name selfRef">Superior Processing Rules</a>
+          </h4>
+<p id="section-4.2.4-1">Upon receiving a Key Attestation Request, the Superior MUST:<a href="#section-4.2.4-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-4.2.4-2">
+<li id="section-4.2.4-2.1">Verify that the HTTP <code>Content-Type</code> is
+<code>application/key-attestation-request+jwt</code>.<a href="#section-4.2.4-2.1" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.4-2.2">Parse the JWT and verify that <code>typ</code> is <code>key-attestation-request+jwt</code>.<a href="#section-4.2.4-2.2" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.4-2.3">Verify that <code>aud</code> identifies this Superior.<a href="#section-4.2.4-2.3" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.4-2.4">Verify that <code>iss</code> equals <code>sub</code> and that the subject is an Immediate
+Subordinate of this Superior.<a href="#section-4.2.4-2.4" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.4-2.5">Obtain the current Subordinate Statement about <code>sub</code> and verify the request
+signature using the key identified by the request header <code>kid</code>. That key
+MUST be present in the Subordinate Statement <code>jwks</code>.<a href="#section-4.2.4-2.5" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.4-2.6">Verify <code>iat</code>, <code>exp</code>, and that <code>jti</code> has not been reused.<a href="#section-4.2.4-2.6" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.4-2.7">Fetch the Subordinate Entity Configuration from
+<code>entity_configuration_uri</code> or the default well-known URL. Verify that Entity
+Configuration with an Attested Key.<a href="#section-4.2.4-2.7" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.4-2.8">For each JWK in <code>add_keys</code>, verify that a matching key with the same <code>kid</code>
+is present in the Entity Configuration <code>jwks</code>. Implementations MUST compare
+at least the public key parameters required by the key type; comparing only
+<code>kid</code> strings is insufficient.<a href="#section-4.2.4-2.8" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.4-2.9">Construct the updated attested key set by applying <code>add_keys</code>,
+<code>retain_keys</code>, and <code>remove_keys</code> according to local policy. The resulting
+set MUST contain at least one key.<a href="#section-4.2.4-2.9" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.4-2.10">Issue a new Subordinate Statement about <code>sub</code> whose <code>jwks</code> Claim contains
+the updated attested key set, and publish it at the Superior's
+<code>federation_fetch_endpoint</code>.<a href="#section-4.2.4-2.10" class="pilcrow">¶</a>
+</li>
+          </ol>
+<p id="section-4.2.4-3">It is RECOMMENDED that the Superior also require proof of possession of each
+Candidate Key, for example a nested JWT signed with that key's corresponding
+private key, or an equivalent challenge-response. Publishing a public JWK in an
+Entity Configuration alone does not prove possession of the private key.<a href="#section-4.2.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.2.4-4">Superiors MAY require manual approval. In that case they return <code>202 Accepted</code>
+as described below and MUST complete processing only after approval.<a href="#section-4.2.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="key-attestation-response">
+<section id="section-4.3">
+        <h3 id="name-key-attestation-response">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-key-attestation-response" class="section-name selfRef">Key Attestation Response</a>
+        </h3>
+<div id="success-response">
+<section id="section-4.3.1">
+          <h4 id="name-success-response">
+<a href="#section-4.3.1" class="section-number selfRef">4.3.1. </a><a href="#name-success-response" class="section-name selfRef">Success Response</a>
+          </h4>
+<p id="section-4.3.1-1">On immediate success, the Superior MUST respond with HTTP status code <code>200</code> and
+<code>Content-Type</code> of <code>application/entity-statement+jwt</code>. The body MUST be the
+newly issued Subordinate Statement about the requesting Subordinate.<a href="#section-4.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.3.1-2">On acceptance for asynchronous processing, the Superior MAY respond with HTTP
+status code <code>202</code> and <code>Content-Type</code> of <code>application/json</code>. The JSON object
+SHOULD include:<a href="#section-4.3.1-2" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.3.1-3.1">
+              <code>status</code>: String. Value <code>accepted</code>.<a href="#section-4.3.1-3.1" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.3.1-3.2">
+              <code>sub</code>: String. Entity Identifier of the Subordinate.<a href="#section-4.3.1-3.2" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.3.1-3.3">
+              <code>status_uri</code>: OPTIONAL. String. URL where the requester can obtain processing
+status.<a href="#section-4.3.1-3.3" class="pilcrow">¶</a>
+</li>
+          </ul>
+<p id="section-4.3.1-4">Clients that receive <code>202</code> MUST later obtain the updated Subordinate Statement
+from the Superior's <code>federation_fetch_endpoint</code>.<a href="#section-4.3.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="error-response">
+<section id="section-4.3.2">
+          <h4 id="name-error-response">
+<a href="#section-4.3.2" class="section-number selfRef">4.3.2. </a><a href="#name-error-response" class="section-name selfRef">Error Response</a>
+          </h4>
+<p id="section-4.3.2-1">Error responses MUST use <code>Content-Type</code> of <code>application/json</code> and SHOULD use
+the error response pattern defined by <span>[<a href="#OpenID.Federation" class="cite xref">OpenID.Federation</a>]</span> for federation
+endpoints.<a href="#section-4.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-2">Defined error codes include:<a href="#section-4.3.2-2" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.3.2-3.1">
+              <code>invalid_request</code>: Malformed request or missing required Claims.<a href="#section-4.3.2-3.1" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.3.2-3.2">
+              <code>invalid_client</code> / <code>unknown_subordinate</code>: Subject is not an Immediate
+Subordinate of this Superior.<a href="#section-4.3.2-3.2" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.3.2-3.3">
+              <code>unattested_signer</code>: Request signature key is not in the current attested
+key set.<a href="#section-4.3.2-3.3" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.3.2-3.4">
+              <code>key_not_published</code>: A Candidate Key is absent from the Subordinate Entity
+Configuration.<a href="#section-4.3.2-3.4" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.3.2-3.5">
+              <code>invalid_key</code>: A Candidate Key is malformed or does not match the published
+key parameters.<a href="#section-4.3.2-3.5" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.3.2-3.6">
+              <code>approval_required</code>: Policy requires human approval and the Superior does not
+use <code>202</code> for that case.<a href="#section-4.3.2-3.6" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.3.2-3.7">
+              <code>server_error</code>: Unexpected failure.<a href="#section-4.3.2-3.7" class="pilcrow">¶</a>
+</li>
+          </ul>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="examples">
+<section id="section-5">
+      <h2 id="name-examples">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-examples" class="section-name selfRef">Examples</a>
+      </h2>
+<div id="example-http-request">
+<section id="section-5.1">
+        <h3 id="name-example-http-request">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-example-http-request" class="section-name selfRef">Example HTTP Request</a>
+        </h3>
+<p id="section-5.1-1">The following is a non-normative <code>curl</code> example. The JWT must be signed with the
+already-attested key
+<code>ta-poc2-dev-oidf-lab-surfconext-nl-20260320T162914Z</code> before posting.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<div class="lang-bash sourcecode" id="section-5.1-2">
+<pre>#!/usr/bin/env bash
+SUPERIOR="https://ta.oidf-pilot.edugain.org"
+SUBORDINATE="https://ta.poc2.dev.oidf.lab.surfconext.nl"
+NEW_KID="ta-poc2-dev-oidf-lab-surfconext-nl-20260921T124313Z"
+OLD_KID="ta-poc2-dev-oidf-lab-surfconext-nl-20260320T162914Z"
+
+# REQUEST_JWT is a compact JWS with header:
+# {"alg":"ES256","kid":"&lt;OLD_KID&gt;","typ":"key-attestation-request+jwt"}
+# and claims as defined in this specification.
+
+curl -sS -X POST "${SUPERIOR}/key_rollover" \
+  -H "Content-Type: application/key-attestation-request+jwt" \
+  -H "Accept: application/entity-statement+jwt, application/json" \
+  --data-binary "${REQUEST_JWT}"
+</pre><a href="#section-5.1-2" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="example-success-response-header">
+<section id="section-5.2">
+        <h3 id="name-example-success-response-he">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-example-success-response-he" class="section-name selfRef">Example Success Response Header</a>
+        </h3>
+<div class="lang-http sourcecode" id="section-5.2-1">
+<pre>HTTP/1.1 200 OK
+Content-Type: application/entity-statement+jwt
+</pre><a href="#section-5.2-1" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-2">The response body is a Subordinate Statement whose <code>iss</code> is the Superior, whose
+<code>sub</code> is the Subordinate, and whose <code>jwks</code> contains both the retained Attested
+Key and the newly added Candidate Key.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="implementation-considerations">
+<section id="section-6">
+      <h2 id="name-implementation-consideratio">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-implementation-consideratio" class="section-name selfRef">Implementation Considerations</a>
+      </h2>
+<div id="overlap-period">
+<section id="section-6.1">
+        <h3 id="name-overlap-period">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-overlap-period" class="section-name selfRef">Overlap Period</a>
+        </h3>
+<p id="section-6.1-1">During rollover, Superiors SHOULD keep previously attested keys in the
+Subordinate Statement until Subordinates and relying parties have had time to
+obtain the updated statement. Subordinates SHOULD continue signing Entity
+Configurations with an Attested Key until step 4 of the rollover sequence has
+completed.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="policy-and-automatic-approval">
+<section id="section-6.2">
+        <h3 id="name-policy-and-automatic-approv">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-policy-and-automatic-approv" class="section-name selfRef">Policy and Automatic Approval</a>
+        </h3>
+<p id="section-6.2-1">Federations MAY auto-approve Key Attestation Requests that pass the normative
+checks in this specification. Federations with stricter operational controls
+MAY require out-of-band approval while still using this endpoint as the
+machine-readable request and response channel.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="interaction-with-enrollment">
+<section id="section-6.3">
+        <h3 id="name-interaction-with-enrollment">
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-interaction-with-enrollment" class="section-name selfRef">Interaction with Enrollment</a>
+        </h3>
+<p id="section-6.3-1">Initial onboarding MAY continue to use federation-specific registration or
+enrollment protocols. This endpoint is intended for subsequent key set updates
+for an already established Superior/Subordinate relationship.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-7">
+      <h2 id="name-security-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<div id="signer-must-be-attested">
+<section id="section-7.1">
+        <h3 id="name-signer-must-be-attested">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-signer-must-be-attested" class="section-name selfRef">Signer Must Be Attested</a>
+        </h3>
+<p id="section-7.1-1">Accepting a Key Attestation Request signed with a key that is only present in
+the Subordinate Entity Configuration, but not in the Superior's Subordinate
+Statement, would allow an attacker who can publish a replacement Entity
+Configuration to expand the attested key set. Superiors MUST reject such
+requests.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="candidate-keys-must-be-published-and-matched">
+<section id="section-7.2">
+        <h3 id="name-candidate-keys-must-be-publ">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-candidate-keys-must-be-publ" class="section-name selfRef">Candidate Keys Must Be Published and Matched</a>
+        </h3>
+<p id="section-7.2-1">Superiors MUST fetch the Subordinate Entity Configuration and match Candidate
+Keys to published JWKs by public key material, not only by <code>kid</code>. Relying on
+<code>kid</code> alone enables key substitution if an attacker can choose colliding key
+identifiers.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="proof-of-possession">
+<section id="section-7.3">
+        <h3 id="name-proof-of-possession">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-proof-of-possession" class="section-name selfRef">Proof of Possession</a>
+        </h3>
+<p id="section-7.3-1">Without proof of possession, a Subordinate (or an attacker controlling its
+Entity Configuration publication) could request attestation of an arbitrary
+public key. Proof of possession of Candidate Keys is therefore RECOMMENDED.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="replay">
+<section id="section-7.4">
+        <h3 id="name-replay">
+<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-replay" class="section-name selfRef">Replay</a>
+        </h3>
+<p id="section-7.4-1">The combination of <code>jti</code>, <code>iat</code>, and <code>exp</code> is intended to limit replay. Superiors
+MUST enforce freshness and <code>jti</code> uniqueness for the lifetime of the request.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authorization-boundary">
+<section id="section-7.5">
+        <h3 id="name-authorization-boundary">
+<a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-authorization-boundary" class="section-name selfRef">Authorization Boundary</a>
+        </h3>
+<p id="section-7.5-1">This endpoint updates attestation for Immediate Subordinates only. It MUST NOT
+be used to modify Trust Anchor keys distributed out of band, nor to attest keys
+for entities that are not Immediate Subordinates of the responding Superior.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="privacy-considerations">
+<section id="section-8">
+      <h2 id="name-privacy-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+      </h2>
+<p id="section-8-1">Key Attestation Requests reveal that a Subordinate is rotating Federation
+Entity Keys and which Superior attests them. Deployments SHOULD protect the
+endpoint with normal TLS practices and SHOULD avoid logging full JWTs
+indefinitely.<a href="#section-8-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<section id="section-9">
+      <h2 id="name-normative-references">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+      </h2>
+<dl class="references">
+<dt id="OpenID.Federation">[OpenID.Federation]</dt>
+      <dd>
+<span class="refAuthor">Ed., R. H.</span>, <span class="refAuthor">Jones, M. B.</span>, <span class="refAuthor">Solberg, A.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Marco, G. D.</span>, and <span class="refAuthor">V. Dzhuvinov</span>, <span class="refTitle">"OpenID Federation 1.1"</span>, <time datetime="2026-04-28" class="refDate">28 April 2026</time>, <span>&lt;<a href="https://openid.net/specs/openid-federation-1_1-final.html">https://openid.net/specs/openid-federation-1_1-final.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+      <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2119">https://www.rfc-editor.org/info/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7515">[RFC7515]</dt>
+      <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Signature (JWS)"</span>, <span class="seriesInfo">RFC 7515</span>, <span class="seriesInfo">DOI 10.17487/RFC7515</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7515">https://www.rfc-editor.org/info/rfc7515</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7517">[RFC7517]</dt>
+      <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refTitle">"JSON Web Key (JWK)"</span>, <span class="seriesInfo">RFC 7517</span>, <span class="seriesInfo">DOI 10.17487/RFC7517</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7517">https://www.rfc-editor.org/info/rfc7517</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+    <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8174">https://www.rfc-editor.org/info/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+<div id="notices">
+<section id="appendix-A">
+      <h2 id="name-notices">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-notices" class="section-name selfRef">Notices</a>
+      </h2>
+<p id="appendix-A-1">Copyright (c) 2026 The OpenID Foundation.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-2">The OpenID Foundation invites you to participate in this draft. Feedback and
+discussion are encouraged on the OpenID Connect Working Group mailing list.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="acknowledgements">
+<section id="appendix-B">
+      <h2 id="name-acknowledgements">
+<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-acknowledgements" class="section-name selfRef">Acknowledgements</a>
+      </h2>
+<p id="appendix-B-1">This draft was motivated by operational experience rolling Federation Entity
+Keys for Intermediate Trust Anchors whose keys are attested by a Superior Trust
+Anchor. In particular, publishing new keys in an Entity Configuration while a
+Superior Subordinate Statement continues to attest only the previous key leaves
+Trust Chains unable to validate signatures made with the new key.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="document-history">
+<section id="appendix-C">
+      <h2 id="name-document-history">
+<a href="#appendix-C" class="section-number selfRef">Appendix C. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      </h2>
+<p id="appendix-C-1">-00<a href="#appendix-C-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="appendix-C-2.1">Initial individual draft defining the Federation Key Attestation Endpoint,
+request JWT profile, processing rules, and examples.<a href="#appendix-C-2.1" class="pilcrow">¶</a>
+</li>
+      </ul>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-D">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Harry Kodden</span></div>
+<div dir="auto" class="left"><span class="org">SURF</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:harry.kodden@surf.nl" class="email">harry.kodden@surf.nl</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
