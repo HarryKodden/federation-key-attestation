@@ -445,37 +445,40 @@ indefinitely.
 
 {backmatter}
 
-# Normative References
+<reference anchor="OpenID.Federation" target="https://openid.net/specs/openid-federation-1_1-final.html">
+  <front>
+    <title>OpenID Federation 1.1</title>
+    <author fullname="R. Hedberg, Ed.">
+      <organization>independent</organization>
+    </author>
+    <author fullname="Michael B. Jones">
+      <organization>Self-Issued Consulting</organization>
+    </author>
+    <author fullname="A. Solberg">
+      <organization>Sikt</organization>
+    </author>
+    <author fullname="John Bradley">
+      <organization>Yubico</organization>
+    </author>
+    <author fullname="Giuseppe De Marco">
+      <organization>independent</organization>
+    </author>
+    <author fullname="Vladimir Dzhuvinov">
+      <organization>Connect2id</organization>
+    </author>
+    <date day="28" month="April" year="2026"/>
+  </front>
+</reference>
 
-[@!OpenID.Federation]
-  OpenID Foundation, "OpenID Federation 1.1",
-  <https://openid.net/specs/openid-federation-1_1-final.html>.
-
-[@!RFC2119]
-  Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels",
-  BCP 14, RFC 2119, DOI 10.17487/RFC2119, March 1997,
-  <https://www.rfc-editor.org/info/rfc2119>.
-
-[@!RFC7515]
-  Jones, M., Bradley, J., and N. Sakimura, "JSON Web Signature (JWS)",
-  RFC 7515, DOI 10.17487/RFC7515, May 2015,
-  <https://www.rfc-editor.org/info/rfc7515>.
-
-[@!RFC7517]
-  Jones, M., "JSON Web Key (JWK)", RFC 7517, DOI 10.17487/RFC7517, May 2015,
-  <https://www.rfc-editor.org/info/rfc7517>.
-
-[@!RFC8174]
-  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words",
-  BCP 14, RFC 8174, DOI 10.17487/RFC8174, May 2017,
-  <https://www.rfc-editor.org/info/rfc8174>.
-
-# Informative References
-
-[@OpenID.Federation.SubordinateEvents]
-  OpenID Foundation, "OpenID Federation Subordinate Events Endpoint 1.0",
-  <https://openid.net/specs/openid-federation-subordinate-events-1_0.html>.
-
+<reference anchor="OpenID.Federation.SubordinateEvents" target="https://openid.net/specs/openid-federation-subordinate-events-1_0.html">
+  <front>
+    <title>OpenID Federation Subordinate Events Endpoint 1.0</title>
+    <author fullname="OpenID Foundation">
+      <organization>OpenID Foundation</organization>
+    </author>
+    <date day="1" month="January" year="2025"/>
+  </front>
+</reference>
 
 # Notices
 
