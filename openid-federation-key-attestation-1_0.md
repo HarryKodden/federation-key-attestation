@@ -22,7 +22,7 @@ organization="SURF"
 
 .# Abstract
 
-This specification acts as an extension to [@!OpenID.Federation]. It defines
+This specification acts as an extension to OpenID Federation. It defines
 an additional federation endpoint that allows a Subordinate Entity to request
 that its Immediate Superior update the attested Federation Entity Keys in the
 Subordinate Statement. The request is authenticated by a signature made with a
@@ -40,7 +40,7 @@ Entity Statement in the chain. For a Subordinate that is not a Trust Anchor,
 consumers rely on the `jwks` Claim of the Subordinate Statement issued by the
 Superior, not solely on the Subordinate's own Entity Configuration.
 
-[@!OpenID.Federation] Section 11 describes Federation Key Rollover for Entity
+OpenID Federation Section 11 describes Federation Key Rollover for Entity
 Configurations and for Trust Anchors. It does not define a standard protocol by
 which a Subordinate asks its Immediate Superior to update the attested key set
 in the Subordinate Statement. Implementations today depend on out-of-band
@@ -54,6 +54,22 @@ Superior. The request is signed with a key already attested by that Superior.
 The Superior verifies that each candidate key is present in the Subordinate's
 Entity Configuration, then issues an updated Subordinate Statement and makes it
 available from its `federation_fetch_endpoint`.
+
+## Rollover Sequence
+
+The endpoint enables the following recommended key rollover sequence for
+Intermediates and Leaf Entities:
+
+1. The Subordinate adds the Candidate Key to its Entity Configuration `jwks`
+   Claim.
+2. The Subordinate continues to sign its Entity Configuration with an Attested
+   Key.
+3. The Subordinate `POST`s a Key Attestation Request, signed with that Attested
+   Key, to the Superior's Federation Key Attestation Endpoint.
+4. The Superior publishes an updated Subordinate Statement that includes the
+   Candidate Key in its `jwks` Claim.
+5. The Subordinate begins signing with the newly attested key and MAY later
+   retire previous keys via `federation_historical_keys_endpoint`.
 
 ## Rationale and Benefits
 
@@ -86,7 +102,9 @@ when, and only when, they appear in all capitals, as shown here.
 This specification uses the terms "Entity", "Entity Configuration", "Entity
 Statement", "Federation Entity", "Federation Entity Key", "Trust Anchor",
 "Intermediate", "Immediate Superior", "Subordinate", "Subordinate Statement",
-and "Trust Chain" as defined in [@!OpenID.Federation].
+and "Trust Chain" as defined in OpenID Federation.
+
+This specification also defines the following terms:
 
 Attested Key
 : A Federation Entity Key present in the `jwks` Claim of a Subordinate
@@ -105,7 +123,7 @@ Key Attestation Request
 
 # Relationship to OpenID Federation Key Rollover
 
-[@!OpenID.Federation] Section 11.2 describes Trust Anchor key rollover by
+OpenID Federation Section 11.2 describes Trust Anchor key rollover by
 publishing new keys in the Trust Anchor Entity Configuration while continuing
 to sign with previously distributed keys. That model works for Trust Anchors
 because relying parties obtain Trust Anchor keys out of band or from the Trust
@@ -114,19 +132,9 @@ Anchor Entity Configuration itself.
 For Intermediates and Leaf Entities, consumers verify Entity Configuration
 signatures using keys from the Immediate Superior's Subordinate Statement. A
 new key published only in the Subordinate Entity Configuration is therefore not
-sufficient for Trust Chain validation until the Superior attests it.
-
-The recommended rollover sequence when using this specification is:
-
-1. The Subordinate adds the Candidate Key to its Entity Configuration `jwks`
-   Claim.
-2. The Subordinate continues to sign its Entity Configuration with an Attested
-   Key.
-3. The Subordinate calls the Superior's Federation Key Attestation Endpoint.
-4. The Superior issues an updated Subordinate Statement that includes the
-   Candidate Key in `jwks`.
-5. The Subordinate begins signing with the newly attested key and MAY later
-   retire previous keys via `federation_historical_keys_endpoint`.
+sufficient for Trust Chain validation until the Superior attests it. The
+recommended sequence that closes that gap is described in
+(#rollover-sequence).
 
 
 # Key Attestation Endpoint
@@ -149,8 +157,8 @@ is illustrative; any path MAY be used.
 
 ```json
 {
-  "iss": "https://ta.oidf-pilot.edugain.org",
-  "sub": "https://ta.oidf-pilot.edugain.org",
+  "iss": "https://ta.example.com",
+  "sub": "https://ta.example.com",
   "iat": 1792503828,
   "exp": 1792590228,
   "jwks": {
@@ -167,13 +175,13 @@ is illustrative; any path MAY be used.
   "metadata": {
     "federation_entity": {
       "federation_fetch_endpoint":
-        "https://ta.oidf-pilot.edugain.org/fetch",
+        "https://ta.example.com/fetch",
       "federation_list_endpoint":
-        "https://ta.oidf-pilot.edugain.org/list",
+        "https://ta.example.com/list",
       "federation_resolve_endpoint":
-        "https://ta.oidf-pilot.edugain.org/resolve",
+        "https://ta.example.com/resolve",
       "federation_key_attestation_endpoint":
-        "https://ta.oidf-pilot.edugain.org/key_rollover"
+        "https://ta.example.com/key_rollover"
     }
   }
 }
@@ -235,9 +243,9 @@ The following is a non-normative example of Key Attestation Request Claims:
 
 ```json
 {
-  "iss": "https://ta.poc2.dev.oidf.lab.surfconext.nl",
-  "sub": "https://ta.poc2.dev.oidf.lab.surfconext.nl",
-  "aud": "https://ta.oidf-pilot.edugain.org",
+  "iss": "https://subordinate.example.com",
+  "sub": "https://subordinate.example.com",
+  "aud": "https://ta.example.com",
   "iat": 1792600000,
   "exp": 1792603600,
   "jti": "kar-20261022-01",
@@ -247,17 +255,17 @@ The following is a non-normative example of Key Attestation Request Claims:
       "crv": "P-256",
       "use": "sig",
       "alg": "ES256",
-      "kid": "ta-poc2-dev-oidf-lab-surfconext-nl-20260921T124313Z",
+      "kid": "subordinate-20260921T124313Z",
       "x": "nXW6y02ia5cgtgiSl7ywnOGLpocH8nnj9plc3VwbKSs",
       "y": "TxoiRaUH9MbQ8ce0y5ddMCuWwYVUMVj70T-lbGhyL8M"
     }
   ],
   "retain_keys": [
-    "ta-poc2-dev-oidf-lab-surfconext-nl-20260320T162914Z"
+    "subordinate-20260320T162914Z"
   ],
   "remove_keys": [],
   "entity_configuration_uri":
-    "https://ta.poc2.dev.oidf.lab.surfconext.nl/.well-known/openid-federation"
+    "https://subordinate.example.com/.well-known/openid-federation"
 }
 ```
 
@@ -320,7 +328,7 @@ from the Superior's `federation_fetch_endpoint`.
 ### Error Response
 
 Error responses MUST use `Content-Type` of `application/json` and SHOULD use
-the error response pattern defined by [@!OpenID.Federation] for federation
+the error response pattern defined by OpenID Federation for federation
 endpoints.
 
 Defined error codes include:
@@ -345,14 +353,14 @@ Defined error codes include:
 
 The following is a non-normative `curl` example. The JWT must be signed with the
 already-attested key
-`ta-poc2-dev-oidf-lab-surfconext-nl-20260320T162914Z` before posting.
+`subordinate-20260320T162914Z` before posting.
 
 ```bash
 #!/usr/bin/env bash
-SUPERIOR="https://ta.oidf-pilot.edugain.org"
-SUBORDINATE="https://ta.poc2.dev.oidf.lab.surfconext.nl"
-NEW_KID="ta-poc2-dev-oidf-lab-surfconext-nl-20260921T124313Z"
-OLD_KID="ta-poc2-dev-oidf-lab-surfconext-nl-20260320T162914Z"
+SUPERIOR="https://ta.example.com"
+SUBORDINATE="https://subordinate.example.com"
+NEW_KID="subordinate-20260921T124313Z"
+OLD_KID="subordinate-20260320T162914Z"
 
 # REQUEST_JWT is a compact JWS with header:
 # {"alg":"ES256","kid":"<OLD_KID>","typ":"key-attestation-request+jwt"}
@@ -383,8 +391,8 @@ Key and the newly added Candidate Key.
 During rollover, Superiors SHOULD keep previously attested keys in the
 Subordinate Statement until Subordinates and relying parties have had time to
 obtain the updated statement. Subordinates SHOULD continue signing Entity
-Configurations with an Attested Key until step 4 of the rollover sequence has
-completed.
+Configurations with an Attested Key until step 4 of
+(#rollover-sequence) has completed.
 
 ## Policy and Automatic Approval
 
@@ -444,41 +452,6 @@ indefinitely.
 
 
 {backmatter}
-
-<reference anchor="OpenID.Federation" target="https://openid.net/specs/openid-federation-1_1-final.html">
-  <front>
-    <title>OpenID Federation 1.1</title>
-    <author fullname="R. Hedberg, Ed.">
-      <organization>independent</organization>
-    </author>
-    <author fullname="Michael B. Jones">
-      <organization>Self-Issued Consulting</organization>
-    </author>
-    <author fullname="A. Solberg">
-      <organization>Sikt</organization>
-    </author>
-    <author fullname="John Bradley">
-      <organization>Yubico</organization>
-    </author>
-    <author fullname="Giuseppe De Marco">
-      <organization>independent</organization>
-    </author>
-    <author fullname="Vladimir Dzhuvinov">
-      <organization>Connect2id</organization>
-    </author>
-    <date day="28" month="April" year="2026"/>
-  </front>
-</reference>
-
-<reference anchor="OpenID.Federation.SubordinateEvents" target="https://openid.net/specs/openid-federation-subordinate-events-1_0.html">
-  <front>
-    <title>OpenID Federation Subordinate Events Endpoint 1.0</title>
-    <author fullname="OpenID Foundation">
-      <organization>OpenID Foundation</organization>
-    </author>
-    <date day="1" month="January" year="2025"/>
-  </front>
-</reference>
 
 # Notices
 

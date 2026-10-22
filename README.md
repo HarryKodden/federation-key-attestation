@@ -9,10 +9,10 @@ Subordinate Statement.
 ## Builds
 
 The latest editors' draft can be viewed at
-https://openid.github.io/federation-key-attestation/main.html
+https://harrykodden.github.io/federation-key-attestation/main.html
 
 Branches can be viewed at
-https://openid.github.io/federation-key-attestation/{BRANCH-NAME}.html
+https://harrykodden.github.io/federation-key-attestation/{BRANCH-NAME}.html
 
 ## Build the HTML
 
