@@ -7,7 +7,7 @@
 <title>OpenID Federation Key Attestation Endpoint 1.0 - draft 01</title>
 <meta content="Harry Kodden" name="author">
 <meta content="
-       This specification acts as an extension to  . It defines
+       This specification acts as an extension to OpenID Federation. It defines
 an additional federation endpoint that allows a Subordinate Entity to request
 that its Immediate Superior update the attested Federation Entity Keys in the
 Subordinate Statement. The request is authenticated by a signature made with a
@@ -1240,7 +1240,7 @@ li > p:last-of-type:only-child {
 <h1 id="title">OpenID Federation Key Attestation Endpoint 1.0 - draft 01</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This specification acts as an extension to <span>[<a href="#OpenID.Federation" class="cite xref">OpenID.Federation</a>]</span>. It defines
+<p id="section-abstract-1">This specification acts as an extension to OpenID Federation. It defines
 an additional federation endpoint that allows a Subordinate Entity to request
 that its Immediate Superior update the attested Federation Entity Keys in the
 Subordinate Statement. The request is authenticated by a signature made with a
@@ -1254,13 +1254,16 @@ the Subordinate's Entity Configuration.<a href="#section-abstract-1" class="pilc
         </h2>
 <nav class="toc"><ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
-            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+            <p id="section-toc.1-1.1.1"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
-                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-rationale-and-benefits" class="internal xref">Rationale and Benefits</a></p>
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-rollover-sequence" class="internal xref">Rollover Sequence</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.2">
-                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-requirements-notation-and-c" class="internal xref">Requirements Notation and Conventions</a></p>
+                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-rationale-and-benefits" class="internal xref">Rationale and Benefits</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3">
+                <p id="section-toc.1-1.1.2.3.1" class="keepWithNext"><a href="#section-1.3" class="auto internal xref">1.3</a>.  <a href="#name-requirements-notation-and-c" class="internal xref">Requirements Notation and Conventions</a></p>
 </li>
             </ul>
 </li>
@@ -1384,7 +1387,7 @@ Subordinate Statement. Trust Chains verify signatures using keys from the next
 Entity Statement in the chain. For a Subordinate that is not a Trust Anchor,
 consumers rely on the <code>jwks</code> Claim of the Subordinate Statement issued by the
 Superior, not solely on the Subordinate's own Entity Configuration.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2"><span>[<a href="#OpenID.Federation" class="cite xref">OpenID.Federation</a>]</span> Section 11 describes Federation Key Rollover for Entity
+<p id="section-1-2">OpenID Federation Section 11 describes Federation Key Rollover for Entity
 Configurations and for Trust Anchors. It does not define a standard protocol by
 which a Subordinate asks its Immediate Superior to update the attested key set
 in the Subordinate Statement. Implementations today depend on out-of-band
@@ -1397,43 +1400,69 @@ Superior. The request is signed with a key already attested by that Superior.
 The Superior verifies that each candidate key is present in the Subordinate's
 Entity Configuration, then issues an updated Subordinate Statement and makes it
 available from its <code>federation_fetch_endpoint</code>.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<div id="rationale-and-benefits">
+<div id="rollover-sequence">
 <section id="section-1.1">
-        <h3 id="name-rationale-and-benefits">
-<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-rationale-and-benefits" class="section-name selfRef">Rationale and Benefits</a>
+        <h3 id="name-rollover-sequence">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-rollover-sequence" class="section-name selfRef">Rollover Sequence</a>
         </h3>
-<p id="section-1.1-1">The following properties motivate this extension:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-1">The endpoint enables the following recommended key rollover sequence for
+Intermediates and Leaf Entities:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-1.1-2">
+<li id="section-1.1-2.1">The Subordinate adds the Candidate Key to its Entity Configuration <code>jwks</code>
+Claim.<a href="#section-1.1-2.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-1.1-2.2">The Subordinate continues to sign its Entity Configuration with an Attested
+Key.<a href="#section-1.1-2.2" class="pilcrow">¶</a>
+</li>
+          <li id="section-1.1-2.3">The Subordinate <code>POST</code>s a Key Attestation Request, signed with that Attested
+Key, to the Superior's Federation Key Attestation Endpoint.<a href="#section-1.1-2.3" class="pilcrow">¶</a>
+</li>
+          <li id="section-1.1-2.4">The Superior publishes an updated Subordinate Statement that includes the
+Candidate Key in its <code>jwks</code> Claim.<a href="#section-1.1-2.4" class="pilcrow">¶</a>
+</li>
+          <li id="section-1.1-2.5">The Subordinate begins signing with the newly attested key and MAY later
+retire previous keys via <code>federation_historical_keys_endpoint</code>.<a href="#section-1.1-2.5" class="pilcrow">¶</a>
+</li>
+        </ol>
+</section>
+</div>
+<div id="rationale-and-benefits">
+<section id="section-1.2">
+        <h3 id="name-rationale-and-benefits">
+<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-rationale-and-benefits" class="section-name selfRef">Rationale and Benefits</a>
+        </h3>
+<p id="section-1.2-1">The following properties motivate this extension:<a href="#section-1.2-1" class="pilcrow">¶</a></p>
 <ul class="compact">
-<li class="compact" id="section-1.1-2.1">Closes the attestation gap: Publishing a key in an Entity Configuration does
+<li class="compact" id="section-1.2-2.1">Closes the attestation gap: Publishing a key in an Entity Configuration does
 not by itself make that key usable in a Trust Chain that depends on a
-Superior-issued Subordinate Statement.<a href="#section-1.1-2.1" class="pilcrow">¶</a>
+Superior-issued Subordinate Statement.<a href="#section-1.2-2.1" class="pilcrow">¶</a>
 </li>
-          <li class="compact" id="section-1.1-2.2">Continuity of control: Signing the request with an already-attested key binds
-the update to the entity the Superior already trusts.<a href="#section-1.1-2.2" class="pilcrow">¶</a>
+          <li class="compact" id="section-1.2-2.2">Continuity of control: Signing the request with an already-attested key binds
+the update to the entity the Superior already trusts.<a href="#section-1.2-2.2" class="pilcrow">¶</a>
 </li>
-          <li class="compact" id="section-1.1-2.3">Independent verification: Requiring candidate keys to appear in the
+          <li class="compact" id="section-1.2-2.3">Independent verification: Requiring candidate keys to appear in the
 Subordinate Entity Configuration lets the Superior re-fetch and verify those
-keys before attestation.<a href="#section-1.1-2.3" class="pilcrow">¶</a>
+keys before attestation.<a href="#section-1.2-2.3" class="pilcrow">¶</a>
 </li>
-          <li class="compact" id="section-1.1-2.4">Compatible with historical keys: After the Superior attests the new key, the
+          <li class="compact" id="section-1.2-2.4">Compatible with historical keys: After the Superior attests the new key, the
 Subordinate can switch signing keys and later publish retired keys at
-<code>federation_historical_keys_endpoint</code> as defined by OpenID Federation.<a href="#section-1.1-2.4" class="pilcrow">¶</a>
+<code>federation_historical_keys_endpoint</code> as defined by OpenID Federation.<a href="#section-1.2-2.4" class="pilcrow">¶</a>
 </li>
-          <li class="compact" id="section-1.1-2.5">Complements Subordinate Events: Where a Superior publishes Subordinate Events,
-a successful attestation update SHOULD be recorded as a <code>jwks_update</code> event.<a href="#section-1.1-2.5" class="pilcrow">¶</a>
+          <li class="compact" id="section-1.2-2.5">Complements Subordinate Events: Where a Superior publishes Subordinate Events,
+a successful attestation update SHOULD be recorded as a <code>jwks_update</code> event.<a href="#section-1.2-2.5" class="pilcrow">¶</a>
 </li>
         </ul>
 </section>
 </div>
 <div id="requirements-notation-and-conventions">
-<section id="section-1.2">
+<section id="section-1.3">
         <h3 id="name-requirements-notation-and-c">
-<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-requirements-notation-and-c" class="section-name selfRef">Requirements Notation and Conventions</a>
+<a href="#section-1.3" class="section-number selfRef">1.3. </a><a href="#name-requirements-notation-and-c" class="section-name selfRef">Requirements Notation and Conventions</a>
         </h3>
-<p id="section-1.2-1">The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+<p id="section-1.3-1">The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this
 document are to be interpreted as described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span>
-when, and only when, they appear in all capitals, as shown here.<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+when, and only when, they appear in all capitals, as shown here.<a href="#section-1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1446,23 +1475,24 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 <p id="section-2-1">This specification uses the terms "Entity", "Entity Configuration", "Entity
 Statement", "Federation Entity", "Federation Entity Key", "Trust Anchor",
 "Intermediate", "Immediate Superior", "Subordinate", "Subordinate Statement",
-and "Trust Chain" as defined in <span>[<a href="#OpenID.Federation" class="cite xref">OpenID.Federation</a>]</span>.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlCompact dlParallel" id="section-2-2">
-        <dt id="section-2-2.1">Attested Key</dt>
-        <dd style="margin-left: 1.5em" id="section-2-2.2">A Federation Entity Key present in the <code>jwks</code> Claim of a Subordinate
-Statement issued by an Immediate Superior about a Subordinate.<a href="#section-2-2.2" class="pilcrow">¶</a>
+and "Trust Chain" as defined in OpenID Federation.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">This specification also defines the following terms:<a href="#section-2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-2-3">
+        <dt id="section-2-3.1">Attested Key</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.2">A Federation Entity Key present in the <code>jwks</code> Claim of a Subordinate
+Statement issued by an Immediate Superior about a Subordinate.<a href="#section-2-3.2" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-2.3">Candidate Key</dt>
-        <dd style="margin-left: 1.5em" id="section-2-2.4">A Federation Entity Key that a Subordinate requests to be added to the
+<dt id="section-2-3.3">Candidate Key</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.4">A Federation Entity Key that a Subordinate requests to be added to the
 attested key set. A Candidate Key MUST already appear in the Subordinate's
-Entity Configuration <code>jwks</code> Claim.<a href="#section-2-2.4" class="pilcrow">¶</a>
+Entity Configuration <code>jwks</code> Claim.<a href="#section-2-3.4" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-2.5">Key Attestation Request</dt>
-        <dd style="margin-left: 1.5em" id="section-2-2.6">A signed JWT posted to the Federation Key Attestation Endpoint that requests
+<dt id="section-2-3.5">Key Attestation Request</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.6">A signed JWT posted to the Federation Key Attestation Endpoint that requests
 an update to the attested key set for the Subordinate identified by the JWT
-<code>sub</code> Claim.<a href="#section-2-2.6" class="pilcrow">¶</a>
+<code>sub</code> Claim.<a href="#section-2-3.6" class="pilcrow">¶</a>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1473,7 +1503,7 @@ an update to the attested key set for the Subordinate identified by the JWT
       <h2 id="name-relationship-to-openid-fede">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-relationship-to-openid-fede" class="section-name selfRef">Relationship to OpenID Federation Key Rollover</a>
       </h2>
-<p id="section-3-1"><span>[<a href="#OpenID.Federation" class="cite xref">OpenID.Federation</a>]</span> Section 11.2 describes Trust Anchor key rollover by
+<p id="section-3-1">OpenID Federation Section 11.2 describes Trust Anchor key rollover by
 publishing new keys in the Trust Anchor Entity Configuration while continuing
 to sign with previously distributed keys. That model works for Trust Anchors
 because relying parties obtain Trust Anchor keys out of band or from the Trust
@@ -1481,24 +1511,9 @@ Anchor Entity Configuration itself.<a href="#section-3-1" class="pilcrow">¶</a>
 <p id="section-3-2">For Intermediates and Leaf Entities, consumers verify Entity Configuration
 signatures using keys from the Immediate Superior's Subordinate Statement. A
 new key published only in the Subordinate Entity Configuration is therefore not
-sufficient for Trust Chain validation until the Superior attests it.<a href="#section-3-2" class="pilcrow">¶</a></p>
-<p id="section-3-3">The recommended rollover sequence when using this specification is:<a href="#section-3-3" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="compact type-1" id="section-3-4">
-<li id="section-3-4.1">The Subordinate adds the Candidate Key to its Entity Configuration <code>jwks</code>
-Claim.<a href="#section-3-4.1" class="pilcrow">¶</a>
-</li>
-        <li id="section-3-4.2">The Subordinate continues to sign its Entity Configuration with an Attested
-Key.<a href="#section-3-4.2" class="pilcrow">¶</a>
-</li>
-        <li id="section-3-4.3">The Subordinate calls the Superior's Federation Key Attestation Endpoint.<a href="#section-3-4.3" class="pilcrow">¶</a>
-</li>
-        <li id="section-3-4.4">The Superior issues an updated Subordinate Statement that includes the
-Candidate Key in <code>jwks</code>.<a href="#section-3-4.4" class="pilcrow">¶</a>
-</li>
-        <li id="section-3-4.5">The Subordinate begins signing with the newly attested key and MAY later
-retire previous keys via <code>federation_historical_keys_endpoint</code>.<a href="#section-3-4.5" class="pilcrow">¶</a>
-</li>
-      </ol>
+sufficient for Trust Chain validation until the Superior attests it. The
+recommended sequence that closes that gap is described in
+<a href="#rollover-sequence" class="auto internal xref">Section 1.1</a>.<a href="#section-3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="key-attestation-endpoint">
@@ -1524,8 +1539,8 @@ a Trust Anchor that includes the endpoint. The path component <code>/key_rollove
 is illustrative; any path MAY be used.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-4.1-3">
 <pre>{
-  "iss": "https://ta.oidf-pilot.edugain.org",
-  "sub": "https://ta.oidf-pilot.edugain.org",
+  "iss": "https://ta.example.com",
+  "sub": "https://ta.example.com",
   "iat": 1792503828,
   "exp": 1792590228,
   "jwks": {
@@ -1542,13 +1557,13 @@ is illustrative; any path MAY be used.<a href="#section-4.1-2" class="pilcrow">�
   "metadata": {
     "federation_entity": {
       "federation_fetch_endpoint":
-        "https://ta.oidf-pilot.edugain.org/fetch",
+        "https://ta.example.com/fetch",
       "federation_list_endpoint":
-        "https://ta.oidf-pilot.edugain.org/list",
+        "https://ta.example.com/list",
       "federation_resolve_endpoint":
-        "https://ta.oidf-pilot.edugain.org/resolve",
+        "https://ta.example.com/resolve",
       "federation_key_attestation_endpoint":
-        "https://ta.oidf-pilot.edugain.org/key_rollover"
+        "https://ta.example.com/key_rollover"
     }
   }
 }
@@ -1650,9 +1665,9 @@ Configuration. If omitted, the Superior MUST derive
 <p id="section-4.2.3-4">The following is a non-normative example of Key Attestation Request Claims:<a href="#section-4.2.3-4" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-4.2.3-5">
 <pre>{
-  "iss": "https://ta.poc2.dev.oidf.lab.surfconext.nl",
-  "sub": "https://ta.poc2.dev.oidf.lab.surfconext.nl",
-  "aud": "https://ta.oidf-pilot.edugain.org",
+  "iss": "https://subordinate.example.com",
+  "sub": "https://subordinate.example.com",
+  "aud": "https://ta.example.com",
   "iat": 1792600000,
   "exp": 1792603600,
   "jti": "kar-20261022-01",
@@ -1662,17 +1677,17 @@ Configuration. If omitted, the Superior MUST derive
       "crv": "P-256",
       "use": "sig",
       "alg": "ES256",
-      "kid": "ta-poc2-dev-oidf-lab-surfconext-nl-20260921T124313Z",
+      "kid": "subordinate-20260921T124313Z",
       "x": "nXW6y02ia5cgtgiSl7ywnOGLpocH8nnj9plc3VwbKSs",
       "y": "TxoiRaUH9MbQ8ce0y5ddMCuWwYVUMVj70T-lbGhyL8M"
     }
   ],
   "retain_keys": [
-    "ta-poc2-dev-oidf-lab-surfconext-nl-20260320T162914Z"
+    "subordinate-20260320T162914Z"
   ],
   "remove_keys": [],
   "entity_configuration_uri":
-    "https://ta.poc2.dev.oidf.lab.surfconext.nl/.well-known/openid-federation"
+    "https://subordinate.example.com/.well-known/openid-federation"
 }
 </pre><a href="#section-4.2.3-5" class="pilcrow">¶</a>
 </div>
@@ -1767,7 +1782,7 @@ from the Superior's <code>federation_fetch_endpoint</code>.<a href="#section-4.3
 <a href="#section-4.3.2" class="section-number selfRef">4.3.2. </a><a href="#name-error-response" class="section-name selfRef">Error Response</a>
           </h4>
 <p id="section-4.3.2-1">Error responses MUST use <code>Content-Type</code> of <code>application/json</code> and SHOULD use
-the error response pattern defined by <span>[<a href="#OpenID.Federation" class="cite xref">OpenID.Federation</a>]</span> for federation
+the error response pattern defined by OpenID Federation for federation
 endpoints.<a href="#section-4.3.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-2">Defined error codes include:<a href="#section-4.3.2-2" class="pilcrow">¶</a></p>
 <ul class="compact">
@@ -1816,13 +1831,13 @@ use <code>202</code> for that case.<a href="#section-4.3.2-3.6" class="pilcrow">
         </h3>
 <p id="section-5.1-1">The following is a non-normative <code>curl</code> example. The JWT must be signed with the
 already-attested key
-<code>ta-poc2-dev-oidf-lab-surfconext-nl-20260320T162914Z</code> before posting.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<code>subordinate-20260320T162914Z</code> before posting.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <div class="lang-bash sourcecode" id="section-5.1-2">
 <pre>#!/usr/bin/env bash
-SUPERIOR="https://ta.oidf-pilot.edugain.org"
-SUBORDINATE="https://ta.poc2.dev.oidf.lab.surfconext.nl"
-NEW_KID="ta-poc2-dev-oidf-lab-surfconext-nl-20260921T124313Z"
-OLD_KID="ta-poc2-dev-oidf-lab-surfconext-nl-20260320T162914Z"
+SUPERIOR="https://ta.example.com"
+SUBORDINATE="https://subordinate.example.com"
+NEW_KID="subordinate-20260921T124313Z"
+OLD_KID="subordinate-20260320T162914Z"
 
 # REQUEST_JWT is a compact JWS with header:
 # {"alg":"ES256","kid":"&lt;OLD_KID&gt;","typ":"key-attestation-request+jwt"}
@@ -1866,8 +1881,8 @@ Key and the newly added Candidate Key.<a href="#section-5.2-2" class="pilcrow">�
 <p id="section-6.1-1">During rollover, Superiors SHOULD keep previously attested keys in the
 Subordinate Statement until Subordinates and relying parties have had time to
 obtain the updated statement. Subordinates SHOULD continue signing Entity
-Configurations with an Attested Key until step 4 of the rollover sequence has
-completed.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+Configurations with an Attested Key until step 4 of
+<a href="#rollover-sequence" class="auto internal xref">Section 1.1</a> has completed.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="policy-and-automatic-approval">
@@ -1968,10 +1983,6 @@ indefinitely.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <a href="#section-9" class="section-number selfRef">9. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
       </h2>
 <dl class="references">
-<dt id="OpenID.Federation">[OpenID.Federation]</dt>
-      <dd>
-<span class="refAuthor">Ed., R. H.</span>, <span class="refAuthor">Jones, M. B.</span>, <span class="refAuthor">Solberg, A.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Marco, G. D.</span>, and <span class="refAuthor">V. Dzhuvinov</span>, <span class="refTitle">"OpenID Federation 1.1"</span>, <time datetime="2026-04-28" class="refDate">28 April 2026</time>, <span>&lt;<a href="https://openid.net/specs/openid-federation-1_1-final.html">https://openid.net/specs/openid-federation-1_1-final.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
       <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2119">https://www.rfc-editor.org/info/rfc2119</a>&gt;</span>. </dd>
