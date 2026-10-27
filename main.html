@@ -1665,7 +1665,10 @@ retain all currently attested keys that are not listed in <code>remove_keys</cod
 </li>
             <li class="compact" id="section-4.2.3-2.9">
               <code>remove_keys</code>: OPTIONAL. Array of strings. Key IDs that the Subordinate asks
-the Superior to remove from the attested key set.<a href="#section-4.2.3-2.9" class="pilcrow">¶</a>
+the Superior to remove from the attested key set. A request MAY remove an
+earlier Attested Key only when at least one Attested Key would remain after
+the update. The Superior MUST reject any request whose resulting attested
+key set would be empty.<a href="#section-4.2.3-2.9" class="pilcrow">¶</a>
 </li>
             <li class="compact" id="section-4.2.3-2.10">
               <code>entity_configuration_uri</code>: OPTIONAL. String. URL of the Subordinate Entity
@@ -2028,11 +2031,19 @@ Subordinate Statement until Subordinates and relying parties have had time to
 obtain the updated statement. Subordinates SHOULD continue signing Entity
 Configurations with an Attested Key until step 4 of
 <a href="#rollover-sequence" class="auto internal xref">Section 1.1</a> has completed.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.1-2">When a Subordinate has more than one Immediate Superior, it SHOULD keep signing
+<p id="section-6.1-2">The <code>remove_keys</code> Claim does not conflict with that overlap guidance. It is
+intended for later retirement of an earlier Attested Key, typically after a
+new key has already been attested and parties have had time to obtain the
+updated Subordinate Statement. A Subordinate MAY request removal of an earlier
+Attested Key only when at least one Attested Key remains at the Superior after
+the update. The Superior MUST reject requests that would leave the attested
+key set empty. Overlap is about <em>when</em> to retire a previous key; the
+non-empty attested set is the hard invariant that always applies.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<p id="section-6.1-3">When a Subordinate has more than one Immediate Superior, it SHOULD keep signing
 with the previously Attested Key until every Immediate Superior has accepted
 the Key Attestation Request. Only then SHOULD the Subordinate activate the
 newly attested signing key. If any Superior denies the request or acceptance
-times out, the previously Attested Key remains the active signer.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+times out, the previously Attested Key remains the active signer.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="policy-and-automatic-approval">
@@ -2205,6 +2216,9 @@ request.<a href="#appendix-C-2.1" class="pilcrow">¶</a>
 <code>federation_fetch_endpoint</code>, multi-superior rollover behavior, <code>202</code>
           <code>request_id</code> / status polling, and distinction from DPoP and OpenID4VCI
 proofs.<a href="#appendix-C-2.2" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="appendix-C-2.3">Clarified that <code>remove_keys</code> may retire an earlier Attested Key only when at
+least one Attested Key remains, and how that relates to the overlap period.<a href="#appendix-C-2.3" class="pilcrow">¶</a>
 </li>
       </ul>
 <p id="appendix-C-3">-00<a href="#appendix-C-3" class="pilcrow">¶</a></p>
