@@ -237,7 +237,10 @@ The Key Attestation Request JWT Claims are:
   the Superior to keep in the attested key set. If omitted, the Superior SHOULD
   retain all currently attested keys that are not listed in `remove_keys`.
 - `remove_keys`: OPTIONAL. Array of strings. Key IDs that the Subordinate asks
-  the Superior to remove from the attested key set.
+  the Superior to remove from the attested key set. A request MAY remove an
+  earlier Attested Key only when at least one Attested Key would remain after
+  the update. The Superior MUST reject any request whose resulting attested
+  key set would be empty.
 - `entity_configuration_uri`: OPTIONAL. String. URL of the Subordinate Entity
   Configuration. If omitted, the Superior MUST derive
   `{sub}/.well-known/openid-federation`.
@@ -489,6 +492,15 @@ obtain the updated statement. Subordinates SHOULD continue signing Entity
 Configurations with an Attested Key until step 4 of
 (#rollover-sequence) has completed.
 
+The `remove_keys` Claim does not conflict with that overlap guidance. It is
+intended for later retirement of an earlier Attested Key, typically after a
+new key has already been attested and parties have had time to obtain the
+updated Subordinate Statement. A Subordinate MAY request removal of an earlier
+Attested Key only when at least one Attested Key remains at the Superior after
+the update. The Superior MUST reject requests that would leave the attested
+key set empty. Overlap is about *when* to retire a previous key; the
+non-empty attested set is the hard invariant that always applies.
+
 When a Subordinate has more than one Immediate Superior, it SHOULD keep signing
 with the previously Attested Key until every Immediate Superior has accepted
 the Key Attestation Request. Only then SHOULD the Subordinate activate the
@@ -597,6 +609,8 @@ Trust Chains unable to validate signatures made with the new key.
   `federation_fetch_endpoint`, multi-superior rollover behavior, `202`
   `request_id` / status polling, and distinction from DPoP and OpenID4VCI
   proofs.
+* Clarified that `remove_keys` may retire an earlier Attested Key only when at
+  least one Attested Key remains, and how that relates to the overlap period.
 
 -00
 
