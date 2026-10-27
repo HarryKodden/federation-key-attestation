@@ -120,6 +120,11 @@ Key Attestation Request
   an update to the attested key set for the Subordinate identified by the JWT
   `sub` Claim.
 
+Key Attestation Proof
+: A nested JWT signed with a Candidate Key's private key and included in the
+  Key Attestation Request `key_proofs` Claim. It proves possession of that
+  Candidate Key and is bound to the parent request via `attestation_jti`.
+
 
 # Relationship to OpenID Federation Key Rollover
 
@@ -236,10 +241,17 @@ The Key Attestation Request JWT Claims are:
 - `entity_configuration_uri`: OPTIONAL. String. URL of the Subordinate Entity
   Configuration. If omitted, the Superior MUST derive
   `{sub}/.well-known/openid-federation`.
+- `key_proofs`: CONDITIONAL. Object mapping Candidate Key `kid` values to
+  compact JWTs. REQUIRED when `add_keys` is present. Each value MUST be a Key
+  Attestation Proof JWT for the corresponding Candidate Key, as defined in
+  (#key-attestation-proof). Keys listed only in `remove_keys` or
+  `retain_keys` do not require proofs.
 
 At least one of `add_keys` or `remove_keys` MUST be present.
 
-The following is a non-normative example of Key Attestation Request Claims:
+The following is a non-normative example of Key Attestation Request Claims.
+The `key_proofs` values are shown abbreviated; on the wire each value is a
+complete compact JWS.
 
 ```json
 {
@@ -264,10 +276,81 @@ The following is a non-normative example of Key Attestation Request Claims:
     "subordinate-20260320T162914Z"
   ],
   "remove_keys": [],
+  "key_proofs": {
+    "subordinate-20260921T124313Z":
+      "eyJhbGciOiJFUzI1NiIsImtpZCI6InN1Ym9yZGluYXRlLTIwMjYwOTIxVDEyNDMxM1oiLCJ0eXAiOiJrZXktYXR0ZXN0YXRpb24tcHJvb2Yrand0In0.eyJpc3MiOiJodHRwczovL3N1Ym9yZGluYXRlLmV4YW1wbGUuY29tIiwiYXVkIjoiaHR0cHM6Ly90YS5leGFtcGxlLmNvbSIsImlhdCI6MTc5MjYwMDAwMCwiZXhwIjoxNzkyNjAzNjAwLCJqdGkiOiJrYXAtMDEiLCJhdHRlc3RhdGlvbl9qdGkiOiJrYXItMjAyNjEwMjItMDEifQ.signature"
+  },
   "entity_configuration_uri":
     "https://subordinate.example.com/.well-known/openid-federation"
 }
 ```
+
+### Key Attestation Proof
+
+Publishing a public JWK in an Entity Configuration alone does not prove
+possession of the corresponding private key. When `add_keys` is present, the
+Subordinate MUST include a proof of possession for every Candidate Key in the
+`key_proofs` Claim.
+
+A Key Attestation Proof is a nested JWS [@!RFC7515] signed with the Candidate
+Key's private key. Binding to the parent Key Attestation Request is achieved
+by including that request's `jti` in the proof; this profile does not use a
+server-issued nonce or challenge.
+
+#### Proof JWT Header
+
+The Key Attestation Proof JOSE Header MUST include:
+
+- `alg`: REQUIRED. A signature algorithm suitable for the Candidate Key.
+  `ES256` is RECOMMENDED.
+- `kid`: REQUIRED. MUST equal the Candidate Key `kid` that this proof covers.
+- `typ`: REQUIRED. MUST be `key-attestation-proof+jwt`.
+
+#### Proof JWT Claims
+
+The Key Attestation Proof JWT Claims are:
+
+- `iss`: REQUIRED. String. Entity Identifier of the Subordinate. MUST equal the
+  parent request `iss`.
+- `aud`: REQUIRED. String. Entity Identifier of the Immediate Superior. MUST
+  equal the parent request `aud`.
+- `iat`: REQUIRED. Number. Time at which the proof was issued.
+- `exp`: REQUIRED. Number. Expiration time of the proof.
+- `jti`: REQUIRED. String. Unique identifier for this proof.
+- `attestation_jti`: REQUIRED. String. MUST equal the parent Key Attestation
+  Request `jti`.
+
+The following is a non-normative example of Key Attestation Proof Claims for
+the Candidate Key in the request example above:
+
+```json
+{
+  "iss": "https://subordinate.example.com",
+  "aud": "https://ta.example.com",
+  "iat": 1792600000,
+  "exp": 1792603600,
+  "jti": "kap-01",
+  "attestation_jti": "kar-20261022-01"
+}
+```
+
+#### Proof Verification
+
+For each JWK in `add_keys`, the Superior MUST:
+
+1. Locate the proof JWT in `key_proofs` under that JWK's `kid`. Absence of a
+   proof is an error.
+2. Verify that the proof JOSE Header `typ` is `key-attestation-proof+jwt` and
+   that Header `kid`, when present, equals the Candidate Key `kid`.
+3. Verify that proof Claims `iss` and `aud` match the parent request, and that
+   `attestation_jti` equals the parent request `jti`.
+4. Verify proof `iat` and `exp` for freshness, applying the same clock-skew
+   tolerance used for the parent request.
+5. Verify the proof signature using the Candidate Key public parameters from
+   `add_keys` (not the Attested Key that signed the parent request).
+
+Remove-only requests (`remove_keys` without `add_keys`) do not require
+`key_proofs`.
 
 ### Superior Processing Rules
 
@@ -282,25 +365,30 @@ Upon receiving a Key Attestation Request, the Superior MUST:
 5. Obtain the current Subordinate Statement about `sub` and verify the request
    signature using the key identified by the request header `kid`. That key
    MUST be present in the Subordinate Statement `jwks`.
-6. Verify `iat`, `exp`, and that `jti` has not been reused.
+6. Verify `iat`, `exp`, and that `jti` has not been reused. Superiors SHOULD
+   allow a small clock skew (for example 300 seconds) when validating `iat`.
 7. Fetch the Subordinate Entity Configuration from
    `entity_configuration_uri` or the default well-known URL. Verify that Entity
    Configuration with an Attested Key.
 8. For each JWK in `add_keys`, verify that a matching key with the same `kid`
    is present in the Entity Configuration `jwks`. Implementations MUST compare
-   at least the public key parameters required by the key type; comparing only
+   at least the public key parameters required by the key type (`crv`, `x`,
+   and `y` for EC; `crv` and `x` for OKP; `n` and `e` for RSA); comparing only
    `kid` strings is insufficient.
-9. Construct the updated attested key set by applying `add_keys`,
-   `retain_keys`, and `remove_keys` according to local policy. The resulting
-   set MUST contain at least one key.
-10. Issue a new Subordinate Statement about `sub` whose `jwks` Claim contains
+9. When `add_keys` is present, verify proof of possession for each Candidate
+   Key as specified in (#proof-verification).
+10. Construct the updated attested key set by applying `add_keys`,
+    `retain_keys`, and `remove_keys` according to local policy. The resulting
+    set MUST contain at least one key.
+11. Issue a new Subordinate Statement about `sub` whose `jwks` Claim contains
     the updated attested key set, and publish it at the Superior's
     `federation_fetch_endpoint`.
 
-It is RECOMMENDED that the Superior also require proof of possession of each
-Candidate Key, for example a nested JWT signed with that key's corresponding
-private key, or an equivalent challenge-response. Publishing a public JWK in an
-Entity Configuration alone does not prove possession of the private key.
+After a baseline attested key set exists for a Subordinate, the Superior's
+`federation_fetch_endpoint` response for that Subordinate MUST reflect the
+attested set, not a live mirror of the Subordinate Entity Configuration
+`jwks`. Establishing the initial baseline MAY occur at enrollment or on first
+successful attestation.
 
 Superiors MAY require manual approval. In that case they return `202 Accepted`
 as described below and MUST complete processing only after approval.
@@ -319,11 +407,16 @@ SHOULD include:
 
 - `status`: String. Value `accepted`.
 - `sub`: String. Entity Identifier of the Subordinate.
+- `request_id`: OPTIONAL. String. Opaque identifier for this queued request.
 - `status_uri`: OPTIONAL. String. URL where the requester can obtain processing
-  status.
+  status (for example by supplying `request_id` as a query parameter).
+
+When `status_uri` is provided, a successful poll response SHOULD include
+`request_id`, `sub`, and `status` with one of the values `pending`,
+`approved`, or `denied`. A `denied` response MAY include `reason`.
 
 Clients that receive `202` MUST later obtain the updated Subordinate Statement
-from the Superior's `federation_fetch_endpoint`.
+from the Superior's `federation_fetch_endpoint` after the request is approved.
 
 ### Error Response
 
@@ -340,8 +433,8 @@ Defined error codes include:
   key set.
 - `key_not_published`: A Candidate Key is absent from the Subordinate Entity
   Configuration.
-- `invalid_key`: A Candidate Key is malformed or does not match the published
-  key parameters.
+- `invalid_key`: A Candidate Key is malformed, does not match the published
+  key parameters, or its proof of possession is missing or invalid.
 - `approval_required`: Policy requires human approval and the Superior does not
   use `202` for that case.
 - `server_error`: Unexpected failure.
@@ -353,7 +446,8 @@ Defined error codes include:
 
 The following is a non-normative `curl` example. The JWT must be signed with the
 already-attested key
-`subordinate-20260320T162914Z` before posting.
+`subordinate-20260320T162914Z` before posting, and MUST include a
+`key_proofs` entry for `NEW_KID` signed with that Candidate Key.
 
 ```bash
 #!/usr/bin/env bash
@@ -364,7 +458,8 @@ OLD_KID="subordinate-20260320T162914Z"
 
 # REQUEST_JWT is a compact JWS with header:
 # {"alg":"ES256","kid":"<OLD_KID>","typ":"key-attestation-request+jwt"}
-# and claims as defined in this specification.
+# claims as defined in this specification, including key_proofs[NEW_KID]
+# (typ key-attestation-proof+jwt, attestation_jti = request jti).
 
 curl -sS -X POST "${SUPERIOR}/key_rollover" \
   -H "Content-Type: application/key-attestation-request+jwt" \
@@ -394,6 +489,12 @@ obtain the updated statement. Subordinates SHOULD continue signing Entity
 Configurations with an Attested Key until step 4 of
 (#rollover-sequence) has completed.
 
+When a Subordinate has more than one Immediate Superior, it SHOULD keep signing
+with the previously Attested Key until every Immediate Superior has accepted
+the Key Attestation Request. Only then SHOULD the Subordinate activate the
+newly attested signing key. If any Superior denies the request or acceptance
+times out, the previously Attested Key remains the active signer.
+
 ## Policy and Automatic Approval
 
 Federations MAY auto-approve Key Attestation Requests that pass the normative
@@ -406,6 +507,13 @@ machine-readable request and response channel.
 Initial onboarding MAY continue to use federation-specific registration or
 enrollment protocols. This endpoint is intended for subsequent key set updates
 for an already established Superior/Subordinate relationship.
+
+## Relation to Other Proof Mechanisms
+
+The Key Attestation Proof profile defined here is specific to Federation Entity
+Key updates. It is not hardware key attestation, not OAuth DPoP, and not the
+OpenID for Verifiable Credential Issuance proof-of-possession mechanism that
+uses `c_nonce` or confirmation claims such as `cnf`.
 
 
 # Security Considerations
@@ -429,7 +537,14 @@ identifiers.
 
 Without proof of possession, a Subordinate (or an attacker controlling its
 Entity Configuration publication) could request attestation of an arbitrary
-public key. Proof of possession of Candidate Keys is therefore RECOMMENDED.
+public key that the Subordinate does not control. Superiors MUST therefore
+require Key Attestation Proofs for every Candidate Key in `add_keys`, as
+specified in (#key-attestation-proof).
+
+Proofs are bound to a single parent request through `attestation_jti`. A
+captured proof cannot authorize a different Key Attestation Request. Superiors
+MUST still enforce parent-request `jti` uniqueness so that a captured request
+and its proofs cannot be replayed.
 
 ## Replay
 
@@ -472,6 +587,16 @@ Trust Chains unable to validate signatures made with the new key.
 
 
 # Document History
+
+-01
+
+* Defined normative proof of possession: `key_proofs`, JOSE typ
+  `key-attestation-proof+jwt`, and `attestation_jti` binding to the parent
+  request.
+* Clarified public-parameter matching by key type, attested-set locking at
+  `federation_fetch_endpoint`, multi-superior rollover behavior, `202`
+  `request_id` / status polling, and distinction from DPoP and OpenID4VCI
+  proofs.
 
 -00
 
