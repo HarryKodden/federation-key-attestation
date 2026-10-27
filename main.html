@@ -1226,7 +1226,7 @@ li > p:last-of-type:only-child {
 <dd class="workgroup">OpenID Connect Working Group</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-22" class="published">22 October 2026</time>
+<time datetime="2026-10-27" class="published">27 October 2026</time>
     </dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
@@ -1292,7 +1292,10 @@ the Subordinate's Entity Configuration.<a href="#section-abstract-1" class="pilc
                     <p id="section-toc.1-1.4.2.2.2.3.1"><a href="#section-4.2.3" class="auto internal xref">4.2.3</a>.  <a href="#name-jwt-claims" class="internal xref">JWT Claims</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.4">
-                    <p id="section-toc.1-1.4.2.2.2.4.1"><a href="#section-4.2.4" class="auto internal xref">4.2.4</a>.  <a href="#name-superior-processing-rules" class="internal xref">Superior Processing Rules</a></p>
+                    <p id="section-toc.1-1.4.2.2.2.4.1"><a href="#section-4.2.4" class="auto internal xref">4.2.4</a>.  <a href="#name-key-attestation-proof" class="internal xref">Key Attestation Proof</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.5">
+                    <p id="section-toc.1-1.4.2.2.2.5.1"><a href="#section-4.2.5" class="auto internal xref">4.2.5</a>.  <a href="#name-superior-processing-rules" class="internal xref">Superior Processing Rules</a></p>
 </li>
                 </ul>
 </li>
@@ -1331,6 +1334,9 @@ the Subordinate's Entity Configuration.<a href="#section-abstract-1" class="pilc
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
                 <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-interaction-with-enrollment" class="internal xref">Interaction with Enrollment</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4">
+                <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-relation-to-other-proof-mec" class="internal xref">Relation to Other Proof Mechanisms</a></p>
 </li>
             </ul>
 </li>
@@ -1493,6 +1499,12 @@ Entity Configuration <code>jwks</code> Claim.<a href="#section-2-3.4" class="pil
         <dd style="margin-left: 1.5em" id="section-2-3.6">A signed JWT posted to the Federation Key Attestation Endpoint that requests
 an update to the attested key set for the Subordinate identified by the JWT
 <code>sub</code> Claim.<a href="#section-2-3.6" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.7">Key Attestation Proof</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.8">A nested JWT signed with a Candidate Key's private key and included in the
+Key Attestation Request <code>key_proofs</code> Claim. It proves possession of that
+Candidate Key and is bound to the parent request via <code>attestation_jti</code>.<a href="#section-2-3.8" class="pilcrow">¶</a>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1660,9 +1672,18 @@ the Superior to remove from the attested key set.<a href="#section-4.2.3-2.9" cl
 Configuration. If omitted, the Superior MUST derive
 <code>{sub}/.well-known/openid-federation</code>.<a href="#section-4.2.3-2.10" class="pilcrow">¶</a>
 </li>
+            <li class="compact" id="section-4.2.3-2.11">
+              <code>key_proofs</code>: CONDITIONAL. Object mapping Candidate Key <code>kid</code> values to
+compact JWTs. REQUIRED when <code>add_keys</code> is present. Each value MUST be a Key
+Attestation Proof JWT for the corresponding Candidate Key, as defined in
+<a href="#key-attestation-proof" class="auto internal xref">Section 4.2.4</a>. Keys listed only in <code>remove_keys</code> or
+<code>retain_keys</code> do not require proofs.<a href="#section-4.2.3-2.11" class="pilcrow">¶</a>
+</li>
           </ul>
 <p id="section-4.2.3-3">At least one of <code>add_keys</code> or <code>remove_keys</code> MUST be present.<a href="#section-4.2.3-3" class="pilcrow">¶</a></p>
-<p id="section-4.2.3-4">The following is a non-normative example of Key Attestation Request Claims:<a href="#section-4.2.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.2.3-4">The following is a non-normative example of Key Attestation Request Claims.
+The <code>key_proofs</code> values are shown abbreviated; on the wire each value is a
+complete compact JWS.<a href="#section-4.2.3-4" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-4.2.3-5">
 <pre>{
   "iss": "https://subordinate.example.com",
@@ -1686,6 +1707,10 @@ Configuration. If omitted, the Superior MUST derive
     "subordinate-20260320T162914Z"
   ],
   "remove_keys": [],
+  "key_proofs": {
+    "subordinate-20260921T124313Z":
+      "eyJhbGciOiJFUzI1NiIsImtpZCI6InN1Ym9yZGluYXRlLTIwMjYwOTIxVDEyNDMxM1oiLCJ0eXAiOiJrZXktYXR0ZXN0YXRpb24tcHJvb2Yrand0In0.eyJpc3MiOiJodHRwczovL3N1Ym9yZGluYXRlLmV4YW1wbGUuY29tIiwiYXVkIjoiaHR0cHM6Ly90YS5leGFtcGxlLmNvbSIsImlhdCI6MTc5MjYwMDAwMCwiZXhwIjoxNzkyNjAzNjAwLCJqdGkiOiJrYXAtMDEiLCJhdHRlc3RhdGlvbl9qdGkiOiJrYXItMjAyNjEwMjItMDEifQ.signature"
+  },
   "entity_configuration_uri":
     "https://subordinate.example.com/.well-known/openid-federation"
 }
@@ -1693,53 +1718,165 @@ Configuration. If omitted, the Superior MUST derive
 </div>
 </section>
 </div>
-<div id="superior-processing-rules">
+<div id="key-attestation-proof">
 <section id="section-4.2.4">
-          <h4 id="name-superior-processing-rules">
-<a href="#section-4.2.4" class="section-number selfRef">4.2.4. </a><a href="#name-superior-processing-rules" class="section-name selfRef">Superior Processing Rules</a>
+          <h4 id="name-key-attestation-proof">
+<a href="#section-4.2.4" class="section-number selfRef">4.2.4. </a><a href="#name-key-attestation-proof" class="section-name selfRef">Key Attestation Proof</a>
           </h4>
-<p id="section-4.2.4-1">Upon receiving a Key Attestation Request, the Superior MUST:<a href="#section-4.2.4-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="compact type-1" id="section-4.2.4-2">
-<li id="section-4.2.4-2.1">Verify that the HTTP <code>Content-Type</code> is
-<code>application/key-attestation-request+jwt</code>.<a href="#section-4.2.4-2.1" class="pilcrow">¶</a>
+<p id="section-4.2.4-1">Publishing a public JWK in an Entity Configuration alone does not prove
+possession of the corresponding private key. When <code>add_keys</code> is present, the
+Subordinate MUST include a proof of possession for every Candidate Key in the
+<code>key_proofs</code> Claim.<a href="#section-4.2.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.2.4-2">A Key Attestation Proof is a nested JWS <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span> signed with the Candidate
+Key's private key. Binding to the parent Key Attestation Request is achieved
+by including that request's <code>jti</code> in the proof; this profile does not use a
+server-issued nonce or challenge.<a href="#section-4.2.4-2" class="pilcrow">¶</a></p>
+<div id="proof-jwt-header">
+<section id="section-4.2.4.1">
+            <h5 id="name-proof-jwt-header">
+<a href="#section-4.2.4.1" class="section-number selfRef">4.2.4.1. </a><a href="#name-proof-jwt-header" class="section-name selfRef">Proof JWT Header</a>
+            </h5>
+<p id="section-4.2.4.1-1">The Key Attestation Proof JOSE Header MUST include:<a href="#section-4.2.4.1-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.2.4.1-2.1">
+                <code>alg</code>: REQUIRED. A signature algorithm suitable for the Candidate Key.
+<code>ES256</code> is RECOMMENDED.<a href="#section-4.2.4.1-2.1" class="pilcrow">¶</a>
 </li>
-            <li id="section-4.2.4-2.2">Parse the JWT and verify that <code>typ</code> is <code>key-attestation-request+jwt</code>.<a href="#section-4.2.4-2.2" class="pilcrow">¶</a>
+              <li class="compact" id="section-4.2.4.1-2.2">
+                <code>kid</code>: REQUIRED. MUST equal the Candidate Key <code>kid</code> that this proof covers.<a href="#section-4.2.4.1-2.2" class="pilcrow">¶</a>
 </li>
-            <li id="section-4.2.4-2.3">Verify that <code>aud</code> identifies this Superior.<a href="#section-4.2.4-2.3" class="pilcrow">¶</a>
+              <li class="compact" id="section-4.2.4.1-2.3">
+                <code>typ</code>: REQUIRED. MUST be <code>key-attestation-proof+jwt</code>.<a href="#section-4.2.4.1-2.3" class="pilcrow">¶</a>
 </li>
-            <li id="section-4.2.4-2.4">Verify that <code>iss</code> equals <code>sub</code> and that the subject is an Immediate
-Subordinate of this Superior.<a href="#section-4.2.4-2.4" class="pilcrow">¶</a>
+            </ul>
+</section>
+</div>
+<div id="proof-jwt-claims">
+<section id="section-4.2.4.2">
+            <h5 id="name-proof-jwt-claims">
+<a href="#section-4.2.4.2" class="section-number selfRef">4.2.4.2. </a><a href="#name-proof-jwt-claims" class="section-name selfRef">Proof JWT Claims</a>
+            </h5>
+<p id="section-4.2.4.2-1">The Key Attestation Proof JWT Claims are:<a href="#section-4.2.4.2-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.2.4.2-2.1">
+                <code>iss</code>: REQUIRED. String. Entity Identifier of the Subordinate. MUST equal the
+parent request <code>iss</code>.<a href="#section-4.2.4.2-2.1" class="pilcrow">¶</a>
 </li>
-            <li id="section-4.2.4-2.5">Obtain the current Subordinate Statement about <code>sub</code> and verify the request
+              <li class="compact" id="section-4.2.4.2-2.2">
+                <code>aud</code>: REQUIRED. String. Entity Identifier of the Immediate Superior. MUST
+equal the parent request <code>aud</code>.<a href="#section-4.2.4.2-2.2" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-4.2.4.2-2.3">
+                <code>iat</code>: REQUIRED. Number. Time at which the proof was issued.<a href="#section-4.2.4.2-2.3" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-4.2.4.2-2.4">
+                <code>exp</code>: REQUIRED. Number. Expiration time of the proof.<a href="#section-4.2.4.2-2.4" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-4.2.4.2-2.5">
+                <code>jti</code>: REQUIRED. String. Unique identifier for this proof.<a href="#section-4.2.4.2-2.5" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-4.2.4.2-2.6">
+                <code>attestation_jti</code>: REQUIRED. String. MUST equal the parent Key Attestation
+Request <code>jti</code>.<a href="#section-4.2.4.2-2.6" class="pilcrow">¶</a>
+</li>
+            </ul>
+<p id="section-4.2.4.2-3">The following is a non-normative example of Key Attestation Proof Claims for
+the Candidate Key in the request example above:<a href="#section-4.2.4.2-3" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.2.4.2-4">
+<pre>{
+  "iss": "https://subordinate.example.com",
+  "aud": "https://ta.example.com",
+  "iat": 1792600000,
+  "exp": 1792603600,
+  "jti": "kap-01",
+  "attestation_jti": "kar-20261022-01"
+}
+</pre><a href="#section-4.2.4.2-4" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="proof-verification">
+<section id="section-4.2.4.3">
+            <h5 id="name-proof-verification">
+<a href="#section-4.2.4.3" class="section-number selfRef">4.2.4.3. </a><a href="#name-proof-verification" class="section-name selfRef">Proof Verification</a>
+            </h5>
+<p id="section-4.2.4.3-1">For each JWK in <code>add_keys</code>, the Superior MUST:<a href="#section-4.2.4.3-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-4.2.4.3-2">
+<li id="section-4.2.4.3-2.1">Locate the proof JWT in <code>key_proofs</code> under that JWK's <code>kid</code>. Absence of a
+proof is an error.<a href="#section-4.2.4.3-2.1" class="pilcrow">¶</a>
+</li>
+              <li id="section-4.2.4.3-2.2">Verify that the proof JOSE Header <code>typ</code> is <code>key-attestation-proof+jwt</code> and
+that Header <code>kid</code>, when present, equals the Candidate Key <code>kid</code>.<a href="#section-4.2.4.3-2.2" class="pilcrow">¶</a>
+</li>
+              <li id="section-4.2.4.3-2.3">Verify that proof Claims <code>iss</code> and <code>aud</code> match the parent request, and that
+<code>attestation_jti</code> equals the parent request <code>jti</code>.<a href="#section-4.2.4.3-2.3" class="pilcrow">¶</a>
+</li>
+              <li id="section-4.2.4.3-2.4">Verify proof <code>iat</code> and <code>exp</code> for freshness, applying the same clock-skew
+tolerance used for the parent request.<a href="#section-4.2.4.3-2.4" class="pilcrow">¶</a>
+</li>
+              <li id="section-4.2.4.3-2.5">Verify the proof signature using the Candidate Key public parameters from
+<code>add_keys</code> (not the Attested Key that signed the parent request).<a href="#section-4.2.4.3-2.5" class="pilcrow">¶</a>
+</li>
+            </ol>
+<p id="section-4.2.4.3-3">Remove-only requests (<code>remove_keys</code> without <code>add_keys</code>) do not require
+<code>key_proofs</code>.<a href="#section-4.2.4.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="superior-processing-rules">
+<section id="section-4.2.5">
+          <h4 id="name-superior-processing-rules">
+<a href="#section-4.2.5" class="section-number selfRef">4.2.5. </a><a href="#name-superior-processing-rules" class="section-name selfRef">Superior Processing Rules</a>
+          </h4>
+<p id="section-4.2.5-1">Upon receiving a Key Attestation Request, the Superior MUST:<a href="#section-4.2.5-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-4.2.5-2">
+<li id="section-4.2.5-2.1">Verify that the HTTP <code>Content-Type</code> is
+<code>application/key-attestation-request+jwt</code>.<a href="#section-4.2.5-2.1" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.5-2.2">Parse the JWT and verify that <code>typ</code> is <code>key-attestation-request+jwt</code>.<a href="#section-4.2.5-2.2" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.5-2.3">Verify that <code>aud</code> identifies this Superior.<a href="#section-4.2.5-2.3" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.5-2.4">Verify that <code>iss</code> equals <code>sub</code> and that the subject is an Immediate
+Subordinate of this Superior.<a href="#section-4.2.5-2.4" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.5-2.5">Obtain the current Subordinate Statement about <code>sub</code> and verify the request
 signature using the key identified by the request header <code>kid</code>. That key
-MUST be present in the Subordinate Statement <code>jwks</code>.<a href="#section-4.2.4-2.5" class="pilcrow">¶</a>
+MUST be present in the Subordinate Statement <code>jwks</code>.<a href="#section-4.2.5-2.5" class="pilcrow">¶</a>
 </li>
-            <li id="section-4.2.4-2.6">Verify <code>iat</code>, <code>exp</code>, and that <code>jti</code> has not been reused.<a href="#section-4.2.4-2.6" class="pilcrow">¶</a>
+            <li id="section-4.2.5-2.6">Verify <code>iat</code>, <code>exp</code>, and that <code>jti</code> has not been reused. Superiors SHOULD
+allow a small clock skew (for example 300 seconds) when validating <code>iat</code>.<a href="#section-4.2.5-2.6" class="pilcrow">¶</a>
 </li>
-            <li id="section-4.2.4-2.7">Fetch the Subordinate Entity Configuration from
+            <li id="section-4.2.5-2.7">Fetch the Subordinate Entity Configuration from
 <code>entity_configuration_uri</code> or the default well-known URL. Verify that Entity
-Configuration with an Attested Key.<a href="#section-4.2.4-2.7" class="pilcrow">¶</a>
+Configuration with an Attested Key.<a href="#section-4.2.5-2.7" class="pilcrow">¶</a>
 </li>
-            <li id="section-4.2.4-2.8">For each JWK in <code>add_keys</code>, verify that a matching key with the same <code>kid</code>
+            <li id="section-4.2.5-2.8">For each JWK in <code>add_keys</code>, verify that a matching key with the same <code>kid</code>
 is present in the Entity Configuration <code>jwks</code>. Implementations MUST compare
-at least the public key parameters required by the key type; comparing only
-<code>kid</code> strings is insufficient.<a href="#section-4.2.4-2.8" class="pilcrow">¶</a>
+at least the public key parameters required by the key type (<code>crv</code>, <code>x</code>,
+and <code>y</code> for EC; <code>crv</code> and <code>x</code> for OKP; <code>n</code> and <code>e</code> for RSA); comparing only
+<code>kid</code> strings is insufficient.<a href="#section-4.2.5-2.8" class="pilcrow">¶</a>
 </li>
-            <li id="section-4.2.4-2.9">Construct the updated attested key set by applying <code>add_keys</code>,
+            <li id="section-4.2.5-2.9">When <code>add_keys</code> is present, verify proof of possession for each Candidate
+Key as specified in <a href="#proof-verification" class="auto internal xref">Section 4.2.4.3</a>.<a href="#section-4.2.5-2.9" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.2.5-2.10">Construct the updated attested key set by applying <code>add_keys</code>,
 <code>retain_keys</code>, and <code>remove_keys</code> according to local policy. The resulting
-set MUST contain at least one key.<a href="#section-4.2.4-2.9" class="pilcrow">¶</a>
+set MUST contain at least one key.<a href="#section-4.2.5-2.10" class="pilcrow">¶</a>
 </li>
-            <li id="section-4.2.4-2.10">Issue a new Subordinate Statement about <code>sub</code> whose <code>jwks</code> Claim contains
+            <li id="section-4.2.5-2.11">Issue a new Subordinate Statement about <code>sub</code> whose <code>jwks</code> Claim contains
 the updated attested key set, and publish it at the Superior's
-<code>federation_fetch_endpoint</code>.<a href="#section-4.2.4-2.10" class="pilcrow">¶</a>
+<code>federation_fetch_endpoint</code>.<a href="#section-4.2.5-2.11" class="pilcrow">¶</a>
 </li>
           </ol>
-<p id="section-4.2.4-3">It is RECOMMENDED that the Superior also require proof of possession of each
-Candidate Key, for example a nested JWT signed with that key's corresponding
-private key, or an equivalent challenge-response. Publishing a public JWK in an
-Entity Configuration alone does not prove possession of the private key.<a href="#section-4.2.4-3" class="pilcrow">¶</a></p>
-<p id="section-4.2.4-4">Superiors MAY require manual approval. In that case they return <code>202 Accepted</code>
-as described below and MUST complete processing only after approval.<a href="#section-4.2.4-4" class="pilcrow">¶</a></p>
+<p id="section-4.2.5-3">After a baseline attested key set exists for a Subordinate, the Superior's
+<code>federation_fetch_endpoint</code> response for that Subordinate MUST reflect the
+attested set, not a live mirror of the Subordinate Entity Configuration
+<code>jwks</code>. Establishing the initial baseline MAY occur at enrollment or on first
+successful attestation.<a href="#section-4.2.5-3" class="pilcrow">¶</a></p>
+<p id="section-4.2.5-4">Superiors MAY require manual approval. In that case they return <code>202 Accepted</code>
+as described below and MUST complete processing only after approval.<a href="#section-4.2.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1768,12 +1905,18 @@ SHOULD include:<a href="#section-4.3.1-2" class="pilcrow">¶</a></p>
               <code>sub</code>: String. Entity Identifier of the Subordinate.<a href="#section-4.3.1-3.2" class="pilcrow">¶</a>
 </li>
             <li class="compact" id="section-4.3.1-3.3">
+              <code>request_id</code>: OPTIONAL. String. Opaque identifier for this queued request.<a href="#section-4.3.1-3.3" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-4.3.1-3.4">
               <code>status_uri</code>: OPTIONAL. String. URL where the requester can obtain processing
-status.<a href="#section-4.3.1-3.3" class="pilcrow">¶</a>
+status (for example by supplying <code>request_id</code> as a query parameter).<a href="#section-4.3.1-3.4" class="pilcrow">¶</a>
 </li>
           </ul>
-<p id="section-4.3.1-4">Clients that receive <code>202</code> MUST later obtain the updated Subordinate Statement
-from the Superior's <code>federation_fetch_endpoint</code>.<a href="#section-4.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.3.1-4">When <code>status_uri</code> is provided, a successful poll response SHOULD include
+<code>request_id</code>, <code>sub</code>, and <code>status</code> with one of the values <code>pending</code>,
+<code>approved</code>, or <code>denied</code>. A <code>denied</code> response MAY include <code>reason</code>.<a href="#section-4.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.3.1-5">Clients that receive <code>202</code> MUST later obtain the updated Subordinate Statement
+from the Superior's <code>federation_fetch_endpoint</code> after the request is approved.<a href="#section-4.3.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="error-response">
@@ -1802,8 +1945,8 @@ key set.<a href="#section-4.3.2-3.3" class="pilcrow">¶</a>
 Configuration.<a href="#section-4.3.2-3.4" class="pilcrow">¶</a>
 </li>
             <li class="compact" id="section-4.3.2-3.5">
-              <code>invalid_key</code>: A Candidate Key is malformed or does not match the published
-key parameters.<a href="#section-4.3.2-3.5" class="pilcrow">¶</a>
+              <code>invalid_key</code>: A Candidate Key is malformed, does not match the published
+key parameters, or its proof of possession is missing or invalid.<a href="#section-4.3.2-3.5" class="pilcrow">¶</a>
 </li>
             <li class="compact" id="section-4.3.2-3.6">
               <code>approval_required</code>: Policy requires human approval and the Superior does not
@@ -1831,7 +1974,8 @@ use <code>202</code> for that case.<a href="#section-4.3.2-3.6" class="pilcrow">
         </h3>
 <p id="section-5.1-1">The following is a non-normative <code>curl</code> example. The JWT must be signed with the
 already-attested key
-<code>subordinate-20260320T162914Z</code> before posting.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<code>subordinate-20260320T162914Z</code> before posting, and MUST include a
+<code>key_proofs</code> entry for <code>NEW_KID</code> signed with that Candidate Key.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <div class="lang-bash sourcecode" id="section-5.1-2">
 <pre>#!/usr/bin/env bash
 SUPERIOR="https://ta.example.com"
@@ -1841,7 +1985,8 @@ OLD_KID="subordinate-20260320T162914Z"
 
 # REQUEST_JWT is a compact JWS with header:
 # {"alg":"ES256","kid":"&lt;OLD_KID&gt;","typ":"key-attestation-request+jwt"}
-# and claims as defined in this specification.
+# claims as defined in this specification, including key_proofs[NEW_KID]
+# (typ key-attestation-proof+jwt, attestation_jti = request jti).
 
 curl -sS -X POST "${SUPERIOR}/key_rollover" \
   -H "Content-Type: application/key-attestation-request+jwt" \
@@ -1883,6 +2028,11 @@ Subordinate Statement until Subordinates and relying parties have had time to
 obtain the updated statement. Subordinates SHOULD continue signing Entity
 Configurations with an Attested Key until step 4 of
 <a href="#rollover-sequence" class="auto internal xref">Section 1.1</a> has completed.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">When a Subordinate has more than one Immediate Superior, it SHOULD keep signing
+with the previously Attested Key until every Immediate Superior has accepted
+the Key Attestation Request. Only then SHOULD the Subordinate activate the
+newly attested signing key. If any Superior denies the request or acceptance
+times out, the previously Attested Key remains the active signer.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="policy-and-automatic-approval">
@@ -1904,6 +2054,17 @@ machine-readable request and response channel.<a href="#section-6.2-1" class="pi
 <p id="section-6.3-1">Initial onboarding MAY continue to use federation-specific registration or
 enrollment protocols. This endpoint is intended for subsequent key set updates
 for an already established Superior/Subordinate relationship.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="relation-to-other-proof-mechanisms">
+<section id="section-6.4">
+        <h3 id="name-relation-to-other-proof-mec">
+<a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-relation-to-other-proof-mec" class="section-name selfRef">Relation to Other Proof Mechanisms</a>
+        </h3>
+<p id="section-6.4-1">The Key Attestation Proof profile defined here is specific to Federation Entity
+Key updates. It is not hardware key attestation, not OAuth DPoP, and not the
+OpenID for Verifiable Credential Issuance proof-of-possession mechanism that
+uses <code>c_nonce</code> or confirmation claims such as <code>cnf</code>.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1943,7 +2104,13 @@ identifiers.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-7.3-1">Without proof of possession, a Subordinate (or an attacker controlling its
 Entity Configuration publication) could request attestation of an arbitrary
-public key. Proof of possession of Candidate Keys is therefore RECOMMENDED.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+public key that the Subordinate does not control. Superiors MUST therefore
+require Key Attestation Proofs for every Candidate Key in <code>add_keys</code>, as
+specified in <a href="#key-attestation-proof" class="auto internal xref">Section 4.2.4</a>.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-2">Proofs are bound to a single parent request through <code>attestation_jti</code>. A
+captured proof cannot authorize a different Key Attestation Request. Superiors
+MUST still enforce parent-request <code>jti</code> uniqueness so that a captured request
+and its proofs cannot be replayed.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="replay">
@@ -2028,10 +2195,22 @@ Trust Chains unable to validate signatures made with the new key.<a href="#appen
       <h2 id="name-document-history">
 <a href="#appendix-C" class="section-number selfRef">Appendix C. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
       </h2>
-<p id="appendix-C-1">-00<a href="#appendix-C-1" class="pilcrow">¶</a></p>
+<p id="appendix-C-1">-01<a href="#appendix-C-1" class="pilcrow">¶</a></p>
 <ul class="compact">
-<li class="compact" id="appendix-C-2.1">Initial individual draft defining the Federation Key Attestation Endpoint,
-request JWT profile, processing rules, and examples.<a href="#appendix-C-2.1" class="pilcrow">¶</a>
+<li class="compact" id="appendix-C-2.1">Defined normative proof of possession: <code>key_proofs</code>, JOSE typ
+<code>key-attestation-proof+jwt</code>, and <code>attestation_jti</code> binding to the parent
+request.<a href="#appendix-C-2.1" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="appendix-C-2.2">Clarified public-parameter matching by key type, attested-set locking at
+<code>federation_fetch_endpoint</code>, multi-superior rollover behavior, <code>202</code>
+          <code>request_id</code> / status polling, and distinction from DPoP and OpenID4VCI
+proofs.<a href="#appendix-C-2.2" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="appendix-C-3">-00<a href="#appendix-C-3" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="appendix-C-4.1">Initial individual draft defining the Federation Key Attestation Endpoint,
+request JWT profile, processing rules, and examples.<a href="#appendix-C-4.1" class="pilcrow">¶</a>
 </li>
       </ul>
 </section>
